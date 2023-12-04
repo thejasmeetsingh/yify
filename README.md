@@ -9,8 +9,8 @@ A Yify website clone, where users can view, search, and filter movies; registere
 This project was created with the purpose of learning about a Python framework called "Fast API".
 
 ## TODO:
-- [] User management
-- [] Movies management
-- [] Rating management
-- [] Request management
-- [] JWT Auth system
+- [ ] User management
+- [ ] Movies management
+- [ ] Rating management
+- [ ] Request management
+- [ ] JWT Auth system
