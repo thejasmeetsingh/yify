@@ -3,7 +3,6 @@ Main App
 """
 
 from fastapi import FastAPI
-from routers import root
 
 import strings
 
@@ -20,8 +19,17 @@ def get_application() -> FastAPI:
     application.description = strings.APP_DESCRIPTION
 
     # Add routes of different apps
-    application.include_router(root.router)
+    # application.include_router(health_check.router)
 
     return application
 
+
 app = get_application()
+
+
+@app.get("/health-check/")
+async def health_check():
+    """
+    Endpoint for checking if services are up or not
+    """
+    return {"message": "Up & Running!"}
