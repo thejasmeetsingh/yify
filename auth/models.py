@@ -2,7 +2,7 @@
 Contain user profile related model
 """
 
-import peewee
+from sqlalchemy.orm import Mapped, mapped_column
 
 from base.models import BaseModel
 
@@ -12,15 +12,9 @@ class User(BaseModel):
     A user with basic fields which represent as a user profile
     """
 
-    email = peewee.CharField(
-        max_length=50, 
-        unique=True, 
-        index=True, 
-        constraints=[peewee.CharField.check('email ~ \'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$\'')]
-    )
-    password = peewee.CharField(max_length=50)
-    first_name = peewee.CharField(max_length=20)
-    last_name = peewee.CharField(max_length=20)
+    email: Mapped[str] = mapped_column(unique=True, index=True)
+    password: Mapped[str] = mapped_column()
+    first_name: Mapped[str] = mapped_column()
+    last_name: Mapped[str] = mapped_column()
 
-    class Meta:
-        table_name = "user"
+    __tablename__ = "user"
