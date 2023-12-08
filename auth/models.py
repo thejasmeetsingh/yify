@@ -2,7 +2,8 @@
 Contain user profile related model
 """
 
-from sqlalchemy.orm import Mapped, mapped_column
+import re
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from base.models import BaseModel
 
@@ -18,3 +19,13 @@ class User(BaseModel):
     last_name: Mapped[str] = mapped_column()
 
     __tablename__ = "user"
+
+    @validates("email_validation")
+    def validate_email(self, _, value):
+        """
+        RegEx for email validation
+        """
+
+        if not re.match(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", value):
+            raise ValueError("Invalid email address")
+        return value
