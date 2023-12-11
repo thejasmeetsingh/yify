@@ -22,19 +22,19 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.create_table(
-        "user",
-        sa.Column("id", sa.UUID, primary_key=True, index=True, server_default=uuid.uuid4()),
-        sa.Column("created_at", sa.TIMESTAMP, server_default=datetime.utcnow()),
-        sa.Column("modified_at", sa.TIMESTAMP, server_default=datetime.utcnow()),
+        "users",
+        sa.Column("id", sa.UUID(), primary_key=True, index=True),
+        sa.Column("created_at", sa.DateTime()),
+        sa.Column("modified_at", sa.DateTime()),
         sa.Column("email", sa.String(50), unique=True),
         sa.Column("password", sa.String(255)),
         sa.Column("first_name", sa.String(10)),
         sa.Column("last_name", sa.String(10)),
     )
 
-    op.create_check_constraint("email_validation", "user", sa.text("email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'"))
+    op.create_check_constraint("email_validation", "users", sa.text("email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'"))
 
 
 def downgrade() -> None:
-    op.drop_constraint("email_validation", "user", type_="check")
-    op.drop_table("user")
+    op.drop_constraint("email_validation", "users", type_="check")
+    op.drop_table("users")
