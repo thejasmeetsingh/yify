@@ -2,7 +2,8 @@
 Main App
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, status
+from pydantic import BaseModel
 
 import strings
 
@@ -27,9 +28,18 @@ def get_application() -> FastAPI:
 app = get_application()
 
 
-@app.get("/health-check/")
-async def health_check():
+class HealthCheck(BaseModel):
+    """
+    Health check endpoint response schema
+    """
+
+    message: str
+
+
+@app.get("/health-check/", status_code=status.HTTP_200_OK, response_model=HealthCheck)
+async def health_check() -> HealthCheck:
     """
     Endpoint for checking if services are up or not
     """
-    return {"message": "Up & Running!"}
+
+    return HealthCheck(message="Up & Running!")
