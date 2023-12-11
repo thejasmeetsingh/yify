@@ -3,8 +3,12 @@ Contain user profile related model
 """
 
 import re
+import uuid
+from datetime import datetime
+
 import sqlalchemy as sa
 from sqlalchemy.orm import validates
+
 from database import Base
 
 import strings
@@ -24,6 +28,14 @@ class User(Base):
     last_name = sa.Column(sa.String)
 
     __tablename__ = "users"
+
+    def __init__(self):
+        self.id = uuid.uuid4()
+        self.created_at = datetime.utcnow()
+        self.modified_at = datetime.utcnow()
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
     @validates("email_validation")
     def validate_email(self, _, value):

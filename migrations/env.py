@@ -1,7 +1,3 @@
-"""
-Alembic configuration
-"""
-
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -17,8 +13,7 @@ from auth.models import User
 config = context.config
 config.set_main_option(
     "sqlalchemy.url",
-    f"postgresql+psycopg2://{settings.DB_USER}:{settings.DB_PASSWORD}@\
-    {settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
+    f"postgresql+psycopg2://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
 )
 
 # Interpret the config file for Python logging.

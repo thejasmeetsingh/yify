@@ -19,10 +19,6 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """
-    Users table migration
-    """
-
     op.create_table(
         "users",
         sa.Column("id", sa.UUID(), primary_key=True, index=True),
@@ -42,9 +38,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """
-    Users table de-migration
-    """
-
     op.drop_constraint("email_validation", "users", type_="check")
     op.drop_table("users")
