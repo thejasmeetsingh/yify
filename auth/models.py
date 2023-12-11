@@ -14,7 +14,7 @@ class User(Base):
     """
     A user with basic fields which represent as a user profile
     """
-    
+
     id = sa.Column(sa.UUID, primary_key=True, index=True)
     created_at = sa.Column(sa.DateTime)
     modified_at = sa.Column(sa.DateTime)
