@@ -5,6 +5,8 @@ Main App
 from fastapi import FastAPI, status
 from pydantic import BaseModel
 
+from auth import routes as auth_routes
+
 import strings
 
 
@@ -20,7 +22,8 @@ def get_application() -> FastAPI:
     application.description = strings.APP_DESCRIPTION
 
     # Add routes of different apps
-    # application.include_router(health_check.router)
+    prefix = "/v1"
+    application.include_router(auth_routes.router, prefix=prefix)
 
     return application
 

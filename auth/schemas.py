@@ -2,14 +2,17 @@
 Contain user model related pydantic schema
 """
 
-import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 
 
 class User(BaseModel):
-    id: uuid.uuid4
+    """
+    Base user schema
+    """
+
+    id: UUID4
     created_at: datetime
     modified_at: datetime
     email: str
@@ -18,10 +21,17 @@ class User(BaseModel):
     last_name: str
 
     class Config:
-        orm_mode = True
+        """
+        This would tell pydantic to use read the data as an ORM model
+        """
+        from_attributes = True
 
 
 class UserCreate(BaseModel):
+    """
+    User creation schema
+    """
+
     email: str
     password: str
     first_name: str
