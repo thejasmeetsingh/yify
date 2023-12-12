@@ -2,7 +2,10 @@
 Main App
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, status
+from pydantic import BaseModel
+
+from auth import routes as auth_routes
 
 import strings
 
@@ -19,7 +22,8 @@ def get_application() -> FastAPI:
     application.description = strings.APP_DESCRIPTION
 
     # Add routes of different apps
-    # application.include_router(health_check.router)
+    prefix = "/v1"
+    application.include_router(auth_routes.router, prefix=prefix)
 
     return application
 
@@ -27,9 +31,18 @@ def get_application() -> FastAPI:
 app = get_application()
 
 
-@app.get("/health-check/")
-async def health_check():
+class HealthCheck(BaseModel):
+    """
+    Health check endpoint response schema
+    """
+
+    message: str
+
+
+@app.get("/health-check/", status_code=status.HTTP_200_OK, response_model=HealthCheck)
+async def health_check() -> HealthCheck:
     """
     Endpoint for checking if services are up or not
     """
-    return {"message": "Up & Running!"}
+
+    return HealthCheck(message="Up & Running!")
