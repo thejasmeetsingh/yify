@@ -16,7 +16,6 @@ class User(BaseModel):
     created_at: datetime
     modified_at: datetime
     email: str
-    password: str
     first_name: str
     last_name: str
 
@@ -36,6 +35,15 @@ class UserCreate(BaseModel):
     password: str
     first_name: str
     last_name: str
+
+
+class UserLogin(BaseModel):
+    """
+    User login schema
+    """
+
+    email: str
+    password: str
 
 
 class UserResponse(BaseModel):

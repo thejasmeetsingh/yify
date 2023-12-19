@@ -12,7 +12,7 @@ import strings
 
 def get_application() -> FastAPI:
     """
-    Initialize main app with nessecary configuration
+    Initialize main app with necessary configuration
     """
 
     application = FastAPI()
