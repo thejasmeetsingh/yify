@@ -42,8 +42,14 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         # Generate auth tokens
         jwt_payload = {"user_id": str(db_user.id)}
 
-        access_token = get_auth_token(data=jwt_payload, exp=timedelta(minutes=int(config.ACCESS_TOKEN_EXP_MINUTES)))
-        refresh_token = get_auth_token(data=jwt_payload, exp=timedelta(minutes=int(config.REFRESH_TOKEN_EXP_MINUTES)))
+        access_token = get_auth_token(
+            data=jwt_payload,
+            exp=timedelta(minutes=int(config.ACCESS_TOKEN_EXP_MINUTES))
+        )
+        refresh_token = get_auth_token(
+            data=jwt_payload,
+            exp=timedelta(minutes=int(config.REFRESH_TOKEN_EXP_MINUTES))
+        )
 
         jwt = JWT(access=access_token, refresh=refresh_token)
 
@@ -51,7 +57,10 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
 
     except exc.SQLAlchemyError as e:
         # Sent error response if any SQL exception caught
-        raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        ) from e
 
 
 @router.post(path="/login/", response_model=UserJWT, status_code=status.HTTP_200_OK)
@@ -83,8 +92,14 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
         # Generate auth tokens
         jwt_payload = {"user_id": str(db_user.id)}
 
-        access_token = get_auth_token(data=jwt_payload, exp=timedelta(minutes=int(config.ACCESS_TOKEN_EXP_MINUTES)))
-        refresh_token = get_auth_token(data=jwt_payload, exp=timedelta(minutes=int(config.REFRESH_TOKEN_EXP_MINUTES)))
+        access_token = get_auth_token(
+            data=jwt_payload,
+            exp=timedelta(minutes=int(config.ACCESS_TOKEN_EXP_MINUTES))
+        )
+        refresh_token = get_auth_token(
+            data=jwt_payload,
+            exp=timedelta(minutes=int(config.REFRESH_TOKEN_EXP_MINUTES))
+        )
 
         jwt = JWT(access=access_token, refresh=refresh_token)
 
@@ -92,4 +107,7 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
 
     except exc.SQLAlchemyError as e:
         # Sent error response if any SQL exception caught
-        raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        ) from e
