@@ -45,3 +45,20 @@ class UserResponse(BaseModel):
 
     message: str
     data: User
+
+
+class JWT(BaseModel):
+    """
+    JWT response schema
+    """
+
+    access: str
+    refresh: str
+
+
+class UserJWT(UserResponse):
+    """
+    Response schema for user data with JWT
+    """
+
+    tokens: JWT

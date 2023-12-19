@@ -1,20 +1,23 @@
 """
 Contain all user and auth related routes
 """
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
+import config
 import strings
 from auth import crud
-from auth.schemas import UserCreate, UserResponse
+from auth.schemas import UserCreate, UserJWT, JWT
+from base.utils import get_auth_token
 from database import get_db
 
 router = APIRouter()
 
 
-@router.post(path="/register/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(path="/register/", response_model=UserJWT, status_code=status.HTTP_201_CREATED)
 async def register(user: UserCreate, db: Session = Depends(get_db)):
     """
     Handler for creating a user object in DB when user signup/register themselves
@@ -25,6 +28,7 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     """
 
     try:
+        # Check if user already exists
         db_user = crud.get_user_by_email(db=db, email=user.email)
         if db_user:
             raise HTTPException(
@@ -32,7 +36,19 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+        # Create user
         db_user = crud.create_user(db=db, user=user)
-        return UserResponse(message=strings.ACCOUNT_CREATED_SUCCESS, data=db_user)
+
+        # Generate auth tokens
+        jwt_payload = {"user_id": str(db_user.id)}
+
+        access_token = get_auth_token(data=jwt_payload, exp=timedelta(minutes=int(config.ACCESS_TOKEN_EXP_MINUTES)))
+        refresh_token = get_auth_token(data=jwt_payload, exp=timedelta(minutes=int(config.REFRESH_TOKEN_EXP_MINUTES)))
+
+        jwt = JWT(access=access_token, refresh=refresh_token)
+
+        return UserJWT(message=strings.ACCOUNT_CREATED_SUCCESS, data=db_user, tokens=jwt)
+
     except exc.SQLAlchemyError as e:
+        # Sent error response if any SQL exception caught
         raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
