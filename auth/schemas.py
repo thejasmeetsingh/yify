@@ -36,3 +36,12 @@ class UserCreate(BaseModel):
     password: str
     first_name: str
     last_name: str
+
+
+class UserResponse(BaseModel):
+    """
+    Base user response schema
+    """
+
+    message: str
+    data: User

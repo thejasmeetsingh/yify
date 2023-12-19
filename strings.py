@@ -8,3 +8,4 @@ APP_DESCRIPTION = "A Yify website clone, where users can view, search, and filte
 
 INVALID_EMAIL = "Invalid email address"
 EMAIL_ALREADY_EXISTS = "User with this email address already exists"
+ACCOUNT_CREATED_SUCCESS = "Account created successfully!"
