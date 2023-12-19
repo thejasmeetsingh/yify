@@ -16,7 +16,6 @@ class User(BaseModel):
     created_at: datetime
     modified_at: datetime
     email: str
-    password: str
     first_name: str
     last_name: str
 
@@ -36,3 +35,38 @@ class UserCreate(BaseModel):
     password: str
     first_name: str
     last_name: str
+
+
+class UserLogin(BaseModel):
+    """
+    User login schema
+    """
+
+    email: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    """
+    Base user response schema
+    """
+
+    message: str
+    data: User
+
+
+class JWT(BaseModel):
+    """
+    JWT response schema
+    """
+
+    access: str
+    refresh: str
+
+
+class UserJWT(UserResponse):
+    """
+    Response schema for user data with JWT
+    """
+
+    tokens: JWT
