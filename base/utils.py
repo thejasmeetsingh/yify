@@ -42,3 +42,17 @@ def get_auth_token(data: dict, exp: timedelta) -> str:
     _data.update({"exp": datetime.utcnow() + exp})
     encoded_jwt = jwt.encode(payload=_data, key=config.SECRET_KEY, algorithm="HS256")
     return encoded_jwt
+
+
+def validate_refresh_token(refresh_token: str) -> bool:
+    """
+    Validate refresh token
+    :param refresh_token: String containing refresh token
+    :return: Boolean depicting whether token is valid or not
+    """
+
+    try:
+        payload = jwt.decode(jwt=refresh_token, key=config.SECRET_KEY, algorithms="HS256")
+        return payload["exp"] >= datetime.utcnow()
+    except jwt.ExpiredSignatureError as _:
+        return False
