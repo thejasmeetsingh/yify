@@ -1,17 +1,15 @@
 """
 Contain all user and auth related routes
 """
-from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
-import config
 import strings
 from auth import crud
-from auth.schemas import UserCreate, UserJWT, JWT, UserLogin
-from base.utils import get_auth_token, validate_password
+from auth.schemas import UserCreate, UserJWT, JWT, UserLogin, RefreshToken, RefreshTokenResponse
+from base.utils import validate_password, generate_auth_tokens, get_jwt_payload
 from database import get_db
 
 router = APIRouter()
@@ -40,18 +38,8 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         db_user = crud.create_user(db=db, user=user)
 
         # Generate auth tokens
-        jwt_payload = {"user_id": str(db_user.id)}
-
-        access_token = get_auth_token(
-            data=jwt_payload,
-            exp=timedelta(minutes=int(config.ACCESS_TOKEN_EXP_MINUTES))
-        )
-        refresh_token = get_auth_token(
-            data=jwt_payload,
-            exp=timedelta(minutes=int(config.REFRESH_TOKEN_EXP_MINUTES))
-        )
-
-        jwt = JWT(access=access_token, refresh=refresh_token)
+        auth_tokens = generate_auth_tokens(db_user)
+        jwt = JWT(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
 
         return UserJWT(message=strings.ACCOUNT_CREATED_SUCCESS, data=db_user, tokens=jwt)
 
@@ -90,18 +78,8 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
             )
 
         # Generate auth tokens
-        jwt_payload = {"user_id": str(db_user.id)}
-
-        access_token = get_auth_token(
-            data=jwt_payload,
-            exp=timedelta(minutes=int(config.ACCESS_TOKEN_EXP_MINUTES))
-        )
-        refresh_token = get_auth_token(
-            data=jwt_payload,
-            exp=timedelta(minutes=int(config.REFRESH_TOKEN_EXP_MINUTES))
-        )
-
-        jwt = JWT(access=access_token, refresh=refresh_token)
+        auth_tokens = generate_auth_tokens(db_user)
+        jwt = JWT(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
 
         return UserJWT(message=strings.LOGIN_SUCCESS, data=db_user, tokens=jwt)
 
@@ -111,3 +89,51 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
             detail=str(e),
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
+
+
+@router.post(path="/refresh-token/", response_model=RefreshTokenResponse, status_code=status.HTTP_200_OK)
+async def refresh_token(token: RefreshToken, db: Session = Depends(get_db)):
+    """
+    API handler for refreshing access token
+
+    :param token: Refresh token instance
+    :param db: DB session object
+    :return: Pydantic JWT model instance
+    """
+
+    # Perform validations checks on the token
+    if not token.refresh_token:
+        raise HTTPException(
+            detail=strings.INVALID_TOKEN,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    payload = get_jwt_payload(token.refresh_token)
+
+    if not payload:
+        raise HTTPException(
+            detail=strings.INVALID_TOKEN,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    user_id = payload.get("user_id")
+
+    if not user_id:
+        raise HTTPException(
+            detail=strings.INVALID_TOKEN,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    db_user = crud.get_user_by_id(db=db, user_id=user_id)
+
+    if not db_user:
+        raise HTTPException(
+            detail=strings.INVALID_TOKEN,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Generate auth tokens
+    auth_tokens = generate_auth_tokens(db_user)
+    jwt = JWT(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
+
+    return RefreshTokenResponse(message=strings.TOKEN_REFRESH_SUCCESS, data=jwt)

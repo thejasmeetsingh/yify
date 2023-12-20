@@ -70,3 +70,20 @@ class UserJWT(UserResponse):
     """
 
     tokens: JWT
+
+
+class RefreshToken(BaseModel):
+    """
+    Refresh token schema
+    """
+
+    refresh_token: str
+
+
+class RefreshTokenResponse(BaseModel):
+    """
+    Token response schema
+    """
+
+    message: str
+    data: JWT
