@@ -16,15 +16,3 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 Base.metadata.create_all(bind=engine)
-
-
-def get_db():
-    """
-    A common function for getting a database session
-    """
-
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
