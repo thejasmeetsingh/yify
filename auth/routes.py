@@ -8,9 +8,10 @@ from sqlalchemy.orm import Session
 
 import strings
 from auth import crud
-from auth.schemas import UserCreate, UserJWT, JWT, UserLogin, RefreshToken, RefreshTokenResponse
+from auth.models import User
+from auth.schemas import UserCreate, UserJWT, JWT, UserLogin, RefreshToken, RefreshTokenResponse, UserResponse
 from base.utils import validate_password, generate_auth_tokens, get_jwt_payload
-from database import get_db
+from base.dependencies import get_db, get_current_user
 
 router = APIRouter()
 
@@ -137,3 +138,15 @@ async def refresh_token(token: RefreshToken, db: Session = Depends(get_db)):
     jwt = JWT(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
 
     return RefreshTokenResponse(message=strings.TOKEN_REFRESH_SUCCESS, data=jwt)
+
+
+@router.get(path="/profile/", response_model=UserResponse, status_code=status.HTTP_200_OK)
+async def profile_details(user: User = Depends(get_current_user)):
+    """
+    API for fetching current user profile details
+
+    :param user: User object
+    :return: Instance of user response schema
+    """
+
+    return UserResponse(message=strings.PROFILE_DETAILS_SUCCESS, data=user)

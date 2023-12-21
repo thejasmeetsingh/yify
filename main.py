@@ -39,7 +39,7 @@ class HealthCheck(BaseModel):
     message: str
 
 
-@app.get("/health-check/", status_code=status.HTTP_200_OK, response_model=HealthCheck)
+@app.get(path="/health-check/", status_code=status.HTTP_200_OK, response_model=HealthCheck)
 async def health_check() -> HealthCheck:
     """
     Endpoint for checking if services are up or not
