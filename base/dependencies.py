@@ -1,3 +1,7 @@
+"""
+Base dependencies for routes
+"""
+
 from fastapi import Request, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 

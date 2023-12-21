@@ -9,7 +9,15 @@ from sqlalchemy.orm import Session
 import strings
 from auth import crud
 from auth.models import User
-from auth.schemas import UserCreate, UserJWT, JWT, UserLogin, RefreshToken, RefreshTokenResponse, UserResponse
+from auth.schemas import (
+    UserCreate,
+    UserJWT,
+    JWT,
+    UserLogin,
+    RefreshToken,
+    RefreshTokenResponse,
+    UserResponse
+)
 from base.utils import validate_password, generate_auth_tokens, get_jwt_payload
 from base.dependencies import get_db, get_current_user
 
@@ -92,7 +100,11 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
         ) from e
 
 
-@router.post(path="/refresh-token/", response_model=RefreshTokenResponse, status_code=status.HTTP_200_OK)
+@router.post(
+    path="/refresh-token/",
+    response_model=RefreshTokenResponse,
+    status_code=status.HTTP_200_OK
+)
 async def refresh_token(token: RefreshToken, db: Session = Depends(get_db)):
     """
     API handler for refreshing access token
