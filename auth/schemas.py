@@ -65,6 +65,14 @@ class UserResponse(BaseModel):
     data: User
 
 
+class UserDeleteResponse(BaseModel):
+    """
+    User delete response schema
+    """
+
+    message: str
+
+
 class JWT(BaseModel):
     """
     JWT response schema
