@@ -16,7 +16,7 @@ from auth.schemas import (
     UserLogin,
     RefreshToken,
     RefreshTokenResponse,
-    UserResponse
+    UserResponse, UserUpdate
 )
 from base.utils import validate_password, generate_auth_tokens, get_jwt_payload
 from base.dependencies import get_db, get_current_user
@@ -162,3 +162,36 @@ async def profile_details(user: User = Depends(get_current_user)):
     """
 
     return UserResponse(message=strings.PROFILE_DETAILS_SUCCESS, data=user)
+
+
+@router.patch(path="/profile/", response_model=UserResponse, status_code=status.HTTP_200_OK)
+async def update_profile_details(
+        user_update: UserUpdate,
+        user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    """
+    Update user profile details
+
+    :param user_update: Contains updated profile data
+    :param user: Current user object
+    :param db: DB session object
+    :return: User response schema instance
+    """
+
+    try:
+        updated_data = user_update.dict(exclude_unset=True)
+        # Check if the passed data is empty
+        if not updated_data:
+            raise HTTPException(detail=strings.INVALID_DATA_PASSED, status_code=status.HTTP_400_BAD_REQUEST)
+
+        # Update user details
+        updated_user = crud.update_user(db=db, user=user, updated_data=updated_data)
+        return UserResponse(message=strings.PROFILE_DETAILS_UPDATED, data=updated_user)
+
+    except exc.SQLAlchemyError as e:
+        # Sent error response if any SQL exception caught
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        ) from e

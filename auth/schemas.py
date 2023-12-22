@@ -37,6 +37,16 @@ class UserCreate(BaseModel):
     last_name: str
 
 
+class UserUpdate(BaseModel):
+    """
+    User update schema
+    """
+
+    email: str = None
+    first_name: str = None
+    last_name: str = None
+
+
 class UserLogin(BaseModel):
     """
     User login schema
