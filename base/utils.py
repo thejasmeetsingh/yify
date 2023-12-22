@@ -1,6 +1,7 @@
 """
 Contain a centralize util functions
 """
+import string
 from datetime import timedelta
 from datetime import datetime
 
@@ -8,6 +9,7 @@ import jwt
 import bcrypt
 
 import config
+import strings
 from auth.models import User
 
 
@@ -20,7 +22,7 @@ def get_hashed_password(password: str) -> str:
     return hashed_password.decode('utf-8')
 
 
-def validate_password(raw_password: str, hashed_password: str) -> bool:
+def check_password(raw_password: str, hashed_password: str) -> bool:
     """
     Validate raw/input password with hashed password
     """
@@ -29,6 +31,41 @@ def validate_password(raw_password: str, hashed_password: str) -> bool:
         raw_password.encode('utf-8'),
         hashed_password.encode('utf-8')
     )
+
+
+def validate_password(password: str, email: str, first_name: str, last_name: str) -> str | None:
+    """
+    Perform basic password validation checks
+
+    :param password: Raw password
+    :param email: user email
+    :param first_name: user first name
+    :param last_name: user last name
+    :return: String contains error message or None
+    """
+
+    if " " in password:
+        return strings.PASSWORD_CONTAINS_SPACES
+
+    if len(password) < 8:
+        return strings.PASSWORD_LENGTH_ERROR
+
+    if email in password or first_name in password or last_name in password:
+        return strings.PASSWORD_CONTAINS_NAME_EMAIL
+
+    if password.lower() == password:
+        return strings.PASSWORD_CONTAINS_LOWER_CHARS
+
+    if password.upper() == password:
+        return strings.PASSWORD_CONTAINS_UPPER_CHARS
+
+    digits = string.digits
+    if not any([char in digits for char in password]):
+        return strings.PASSWORD_DIGITS_ERROR
+
+    special_chars = "[!@#$%^&*()]"
+    if not any([char in special_chars for char in password]):
+        return strings.PASSWORD_SPECIAL_CHAR_ERROR
 
 
 def get_auth_token(data: dict, exp: timedelta) -> str:

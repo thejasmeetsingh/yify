@@ -18,7 +18,7 @@ from auth.schemas import (
     RefreshTokenResponse,
     UserResponse, UserUpdate, UserDeleteResponse
 )
-from base.utils import validate_password, generate_auth_tokens, get_jwt_payload
+from base.utils import check_password, generate_auth_tokens, get_jwt_payload, validate_password
 from base.dependencies import get_db, get_current_user
 
 router = APIRouter()
@@ -40,6 +40,20 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         if db_user:
             raise HTTPException(
                 detail=strings.EMAIL_ALREADY_EXISTS,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate password
+        password_error = validate_password(
+            password=user.password,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name
+        )
+
+        if password_error:
+            raise HTTPException(
+                detail=password_error,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
@@ -80,7 +94,7 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
             )
 
         # Check user password
-        if not validate_password(raw_password=user.password, hashed_password=db_user.password):
+        if not check_password(raw_password=user.password, hashed_password=db_user.password):
             raise HTTPException(
                 detail=strings.INVALID_PASSWORD,
                 status_code=status.HTTP_400_BAD_REQUEST
@@ -180,7 +194,7 @@ async def update_profile_details(
     """
 
     try:
-        updated_data = user_update.dict(exclude_unset=True)
+        updated_data = user_update.model_dump(exclude_unset=True)
         # Check if the passed data is empty
         if not updated_data:
             raise HTTPException(
