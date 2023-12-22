@@ -5,6 +5,7 @@ Contain user related CRUD ORM queries/functions to interact with the data in the
 import uuid
 from datetime import datetime
 
+from sqlalchemy import update, delete
 from sqlalchemy.orm import Session
 
 from auth import models, schemas
@@ -57,3 +58,34 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.refresh(db_user)
 
     return db_user
+
+
+def update_user(db: Session, user: models.User, updated_data: dict):
+    """
+    Update user details as part of the partial update
+
+    :param db: DB session object
+    :param user: Current user object
+    :param updated_data: Dict containing updated values
+    :return: Refreshed DB object, With update data
+    """
+
+    db.execute(update(models.User).where(models.User.id == user.id).values(updated_data))
+
+    db.commit()
+    db.refresh(user)
+
+    return user
+
+
+def delete_user(db: Session, user: models.User):
+    """
+    Delete a given user object from DB
+
+    :param db: DB session object
+    :param user: Current user object
+    :return: None
+    """
+
+    db.execute(delete(models.User).where(models.User.id == user.id))
+    db.commit()

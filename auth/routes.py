@@ -16,9 +16,9 @@ from auth.schemas import (
     UserLogin,
     RefreshToken,
     RefreshTokenResponse,
-    UserResponse
+    UserResponse, UserUpdate, UserDeleteResponse
 )
-from base.utils import validate_password, generate_auth_tokens, get_jwt_payload
+from base.utils import check_password, generate_auth_tokens, get_jwt_payload, validate_password
 from base.dependencies import get_db, get_current_user
 
 router = APIRouter()
@@ -40,6 +40,20 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         if db_user:
             raise HTTPException(
                 detail=strings.EMAIL_ALREADY_EXISTS,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate password
+        password_error = validate_password(
+            password=user.password,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name
+        )
+
+        if password_error:
+            raise HTTPException(
+                detail=password_error,
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 
@@ -80,7 +94,7 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
             )
 
         # Check user password
-        if not validate_password(raw_password=user.password, hashed_password=db_user.password):
+        if not check_password(raw_password=user.password, hashed_password=db_user.password):
             raise HTTPException(
                 detail=strings.INVALID_PASSWORD,
                 status_code=status.HTTP_400_BAD_REQUEST
@@ -162,3 +176,61 @@ async def profile_details(user: User = Depends(get_current_user)):
     """
 
     return UserResponse(message=strings.PROFILE_DETAILS_SUCCESS, data=user)
+
+
+@router.patch(path="/profile/", response_model=UserResponse, status_code=status.HTTP_200_OK)
+async def update_profile_details(
+        user_update: UserUpdate,
+        user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    """
+    Update user profile details
+
+    :param user_update: Contains updated profile data
+    :param user: Current user object
+    :param db: DB session object
+    :return: User response schema instance
+    """
+
+    try:
+        updated_data = user_update.model_dump(exclude_unset=True)
+        # Check if the passed data is empty
+        if not updated_data:
+            raise HTTPException(
+                detail=strings.INVALID_DATA_PASSED,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Update user details
+        updated_user = crud.update_user(db=db, user=user, updated_data=updated_data)
+        return UserResponse(message=strings.PROFILE_DETAILS_UPDATED, data=updated_user)
+
+    except exc.SQLAlchemyError as e:
+        # Sent error response if any SQL exception caught
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        ) from e
+
+
+@router.delete(path="/profile/", response_model=UserDeleteResponse, status_code=status.HTTP_200_OK)
+async def delete_profile(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Delete user profile details
+
+    :param user: Current user object
+    :param db: DB session object
+    :return: Instance of User delete response schema
+    """
+
+    try:
+        crud.delete_user(db=db, user=user)
+        return UserDeleteResponse(message=strings.PROFILE_DELETE_SUCCESS)
+
+    except exc.SQLAlchemyError as e:
+        # Sent error response if any SQL exception caught
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        ) from e

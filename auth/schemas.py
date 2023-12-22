@@ -37,6 +37,16 @@ class UserCreate(BaseModel):
     last_name: str
 
 
+class UserUpdate(BaseModel):
+    """
+    User update schema
+    """
+
+    email: str = None
+    first_name: str = None
+    last_name: str = None
+
+
 class UserLogin(BaseModel):
     """
     User login schema
@@ -53,6 +63,14 @@ class UserResponse(BaseModel):
 
     message: str
     data: User
+
+
+class UserDeleteResponse(BaseModel):
+    """
+    User delete response schema
+    """
+
+    message: str
 
 
 class JWT(BaseModel):
