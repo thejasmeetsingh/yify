@@ -82,6 +82,14 @@ class ChangePassword(BaseModel):
     new_password: str
 
 
+class ResetPassword(BaseModel):
+    """
+    Reset password schema
+    """
+
+    email: str
+
+
 class JWT(BaseModel):
     """
     JWT response schema

@@ -1,11 +1,13 @@
 """
 Contain all user and auth related routes
 """
+from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Request, HTTPException, status
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
+import config
 import strings
 from auth import crud
 from auth.models import User
@@ -16,9 +18,15 @@ from auth.schemas import (
     UserLogin,
     RefreshToken,
     RefreshTokenResponse,
-    UserResponse, UserUpdate, UserMessageResponse, ChangePassword
+    UserResponse, UserUpdate, UserMessageResponse, ChangePassword, ResetPassword
 )
-from base.utils import check_password, generate_auth_tokens, get_jwt_payload, validate_password, get_hashed_password
+from base.utils import (
+    check_password,
+    generate_auth_tokens,
+    get_jwt_payload,
+    validate_password,
+    get_hashed_password, get_auth_token
+)
 from base.dependencies import get_db, get_current_user
 
 router = APIRouter()
@@ -265,7 +273,10 @@ async def update_password(
             )
 
         # Validate old password is correct or not
-        if not check_password(raw_password=change_password.old_password, hashed_password=user.password):
+        if not check_password(
+                raw_password=change_password.old_password,
+                hashed_password=user.password
+        ):
             raise HTTPException(
                 detail=strings.OLD_PASSWORD_ERROR,
                 status_code=status.HTTP_400_BAD_REQUEST
@@ -304,3 +315,55 @@ async def update_password(
             detail=str(e),
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
+
+
+@router.post(
+    path="/reset-password/",
+    response_model=UserMessageResponse,
+    status_code=status.HTTP_200_OK
+)
+async def get_reset_password_link(
+        reset_password: ResetPassword,
+        request: Request,
+        db: Session = Depends(get_db)
+):
+    """
+    Reset password route for getting reset password link
+
+    :param reset_password: Instance of reset password schema
+    :param request: request object
+    :param db: DB session object
+    :return: Instance of user message schema
+    """
+
+    if not reset_password.email:
+        raise HTTPException(
+            detail=strings.INVALID_EMAIL,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Check if user exists or not
+    db_user = crud.get_user_by_email(db=db, email=reset_password.email)
+
+    if not db_user:
+        raise HTTPException(
+            detail=strings.USER_DOES_NOT_EXISTS,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Generate a token for reset password link
+    token = get_auth_token(
+        data={"user_id": str(db_user.id)},
+        exp=timedelta(minutes=int(config.RESET_PASSWORD_EXP_MINUTES))
+    )
+
+    # Create the reset password link
+    link = f"{request.url.scheme}://{request.url.hostname}"
+    if request.url.port:
+        link += f":{request.url.port}"
+
+    link += f"/reset-password/?token={token}"
+
+    # TODO: Send Email
+
+    return UserMessageResponse(message=strings.RESET_PASSWORD_LINK_SUCCESS)
