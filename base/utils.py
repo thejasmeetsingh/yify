@@ -1,12 +1,11 @@
 """
 Contain a centralize util functions
 """
-import string
-from datetime import timedelta
 from datetime import datetime
+from datetime import timedelta
 
-import jwt
 import bcrypt
+import jwt
 
 import config
 import strings
@@ -33,6 +32,27 @@ def check_password(raw_password: str, hashed_password: str) -> bool:
     )
 
 
+def has_digits(password: str) -> bool:
+    """
+    Function for checking if password contains a digit or not
+    :param password: A string containing password
+    :return: Boolean depicting password contains a digit or not
+    """
+
+    return any(char.isdigit() for char in password)
+
+
+def has_special_character(password: str) -> bool:
+    """
+    Function for checking if password contains a special character or not
+    :param password: A string containing password
+    :return: Boolean depicting password contains a special character or not
+    """
+
+    special_chars = "[!@#$%^&*()]"
+    return any(char in special_chars for char in password)
+
+
 def validate_password(password: str, email: str, first_name: str, last_name: str) -> str | None:
     """
     Perform basic password validation checks
@@ -45,27 +65,30 @@ def validate_password(password: str, email: str, first_name: str, last_name: str
     """
 
     if " " in password:
-        return strings.PASSWORD_CONTAINS_SPACES
+        error_message = strings.PASSWORD_CONTAINS_SPACES
 
-    if len(password) < 8:
-        return strings.PASSWORD_LENGTH_ERROR
+    elif len(password) < 8:
+        error_message = strings.PASSWORD_LENGTH_ERROR
 
-    if email in password or first_name in password or last_name in password:
-        return strings.PASSWORD_CONTAINS_NAME_EMAIL
+    elif email in password or first_name in password or last_name in password:
+        error_message = strings.PASSWORD_CONTAINS_NAME_EMAIL
 
-    if password.lower() == password:
-        return strings.PASSWORD_CONTAINS_LOWER_CHARS
+    elif password.lower() == password:
+        error_message = strings.PASSWORD_CONTAINS_LOWER_CHARS
 
-    if password.upper() == password:
-        return strings.PASSWORD_CONTAINS_UPPER_CHARS
+    elif password.upper() == password:
+        error_message = strings.PASSWORD_CONTAINS_UPPER_CHARS
 
-    digits = string.digits
-    if not any([char in digits for char in password]):
-        return strings.PASSWORD_DIGITS_ERROR
+    elif not has_digits(password):
+        error_message = strings.PASSWORD_DIGITS_ERROR
 
-    special_chars = "[!@#$%^&*()]"
-    if not any([char in special_chars for char in password]):
-        return strings.PASSWORD_SPECIAL_CHAR_ERROR
+    elif not has_special_character(password):
+        error_message = strings.PASSWORD_SPECIAL_CHAR_ERROR
+
+    else:
+        error_message = None
+
+    return error_message
 
 
 def get_auth_token(data: dict, exp: timedelta) -> str:

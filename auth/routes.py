@@ -1,11 +1,13 @@
 """
 Contain all user and auth related routes
 """
+from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Request, HTTPException, status
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
+import config
 import strings
 from auth import crud
 from auth.models import User
@@ -16,9 +18,15 @@ from auth.schemas import (
     UserLogin,
     RefreshToken,
     RefreshTokenResponse,
-    UserResponse, UserUpdate, UserDeleteResponse
+    UserResponse, UserUpdate, UserMessageResponse, ChangePassword, ResetPassword
 )
-from base.utils import check_password, generate_auth_tokens, get_jwt_payload, validate_password
+from base.utils import (
+    check_password,
+    generate_auth_tokens,
+    get_jwt_payload,
+    validate_password,
+    get_hashed_password, get_auth_token
+)
 from base.dependencies import get_db, get_current_user
 
 router = APIRouter()
@@ -214,7 +222,7 @@ async def update_profile_details(
         ) from e
 
 
-@router.delete(path="/profile/", response_model=UserDeleteResponse, status_code=status.HTTP_200_OK)
+@router.delete(path="/profile/", response_model=UserMessageResponse, status_code=status.HTTP_200_OK)
 async def delete_profile(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """
     Delete user profile details
@@ -226,7 +234,7 @@ async def delete_profile(user: User = Depends(get_current_user), db: Session = D
 
     try:
         crud.delete_user(db=db, user=user)
-        return UserDeleteResponse(message=strings.PROFILE_DELETE_SUCCESS)
+        return UserMessageResponse(message=strings.PROFILE_DELETE_SUCCESS)
 
     except exc.SQLAlchemyError as e:
         # Sent error response if any SQL exception caught
@@ -234,3 +242,128 @@ async def delete_profile(user: User = Depends(get_current_user), db: Session = D
             detail=str(e),
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
+
+
+@router.put(
+    path="/change-password/",
+    response_model=UserMessageResponse,
+    status_code=status.HTTP_200_OK
+)
+async def update_password(
+        change_password: ChangePassword,
+        user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    """
+    Change/Update current user password
+
+    :param change_password: Instance of change password schema
+    :param user: Current user object
+    :param db: DB session object
+    :return: Instance of User message schema
+    """
+    try:
+        # Check if old and new password is empty or not
+        if not change_password.old_password or not change_password.new_password:
+            raise HTTPException(
+                detail=strings.PASSWORD_EMPTY_ERROR.format(
+                    "old password" if not change_password.old_password else "new password"
+                ),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate old password is correct or not
+        if not check_password(
+                raw_password=change_password.old_password,
+                hashed_password=user.password
+        ):
+            raise HTTPException(
+                detail=strings.OLD_PASSWORD_ERROR,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if both old and new password are same
+        if change_password.old_password == change_password.new_password:
+            raise HTTPException(
+                detail=strings.PASSWORD_SAME_ERROR,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Perform password validation checks on the new password
+        password_error = validate_password(
+            password=change_password.new_password,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name
+        )
+
+        if password_error:
+            raise HTTPException(
+                detail=password_error,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Generate hashed password based on new password and update it
+        hashed_password = get_hashed_password(change_password.new_password)
+        crud.update_user(db=db, user=user, updated_data={"password": hashed_password})
+
+        return UserMessageResponse(message=strings.PASSWORD_UPDATE_SUCCESS)
+
+    except exc.SQLAlchemyError as e:
+        # Sent error response if any SQL exception caught
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        ) from e
+
+
+@router.post(
+    path="/reset-password/",
+    response_model=UserMessageResponse,
+    status_code=status.HTTP_200_OK
+)
+async def get_reset_password_link(
+        reset_password: ResetPassword,
+        request: Request,
+        db: Session = Depends(get_db)
+):
+    """
+    Reset password route for getting reset password link
+
+    :param reset_password: Instance of reset password schema
+    :param request: request object
+    :param db: DB session object
+    :return: Instance of user message schema
+    """
+
+    if not reset_password.email:
+        raise HTTPException(
+            detail=strings.INVALID_EMAIL,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Check if user exists or not
+    db_user = crud.get_user_by_email(db=db, email=reset_password.email)
+
+    if not db_user:
+        raise HTTPException(
+            detail=strings.USER_DOES_NOT_EXISTS,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Generate a token for reset password link
+    token = get_auth_token(
+        data={"user_id": str(db_user.id)},
+        exp=timedelta(minutes=int(config.RESET_PASSWORD_EXP_MINUTES))
+    )
+
+    # Create the reset password link
+    link = f"{request.url.scheme}://{request.url.hostname}"
+    if request.url.port:
+        link += f":{request.url.port}"
+
+    link += f"/reset-password/?token={token}"
+
+    # TODO: Send Email
+
+    return UserMessageResponse(message=strings.RESET_PASSWORD_LINK_SUCCESS)
