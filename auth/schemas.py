@@ -65,12 +65,21 @@ class UserResponse(BaseModel):
     data: User
 
 
-class UserDeleteResponse(BaseModel):
+class UserMessageResponse(BaseModel):
     """
-    User delete response schema
+    User response schema just for returning a message
     """
 
     message: str
+
+
+class ChangePassword(BaseModel):
+    """
+    Change password schema
+    """
+
+    old_password: str
+    new_password: str
 
 
 class JWT(BaseModel):

@@ -16,9 +16,9 @@ from auth.schemas import (
     UserLogin,
     RefreshToken,
     RefreshTokenResponse,
-    UserResponse, UserUpdate, UserDeleteResponse
+    UserResponse, UserUpdate, UserMessageResponse, ChangePassword
 )
-from base.utils import check_password, generate_auth_tokens, get_jwt_payload, validate_password
+from base.utils import check_password, generate_auth_tokens, get_jwt_payload, validate_password, get_hashed_password
 from base.dependencies import get_db, get_current_user
 
 router = APIRouter()
@@ -214,7 +214,7 @@ async def update_profile_details(
         ) from e
 
 
-@router.delete(path="/profile/", response_model=UserDeleteResponse, status_code=status.HTTP_200_OK)
+@router.delete(path="/profile/", response_model=UserMessageResponse, status_code=status.HTTP_200_OK)
 async def delete_profile(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """
     Delete user profile details
@@ -226,7 +226,77 @@ async def delete_profile(user: User = Depends(get_current_user), db: Session = D
 
     try:
         crud.delete_user(db=db, user=user)
-        return UserDeleteResponse(message=strings.PROFILE_DELETE_SUCCESS)
+        return UserMessageResponse(message=strings.PROFILE_DELETE_SUCCESS)
+
+    except exc.SQLAlchemyError as e:
+        # Sent error response if any SQL exception caught
+        raise HTTPException(
+            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        ) from e
+
+
+@router.put(
+    path="/change-password/",
+    response_model=UserMessageResponse,
+    status_code=status.HTTP_200_OK
+)
+async def update_password(
+        change_password: ChangePassword,
+        user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    """
+    Change/Update current user password
+
+    :param change_password: Instance of change password schema
+    :param user: Current user object
+    :param db: DB session object
+    :return: Instance of User message schema
+    """
+    try:
+        # Check if old and new password is empty or not
+        if not change_password.old_password or not change_password.new_password:
+            raise HTTPException(
+                detail=strings.PASSWORD_EMPTY_ERROR.format(
+                    "old password" if not change_password.old_password else "new password"
+                ),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate old password is correct or not
+        if not check_password(raw_password=change_password.old_password, hashed_password=user.password):
+            raise HTTPException(
+                detail=strings.OLD_PASSWORD_ERROR,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if both old and new password are same
+        if change_password.old_password == change_password.new_password:
+            raise HTTPException(
+                detail=strings.PASSWORD_SAME_ERROR,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Perform password validation checks on the new password
+        password_error = validate_password(
+            password=change_password.new_password,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name
+        )
+
+        if password_error:
+            raise HTTPException(
+                detail=password_error,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Generate hashed password based on new password and update it
+        hashed_password = get_hashed_password(change_password.new_password)
+        crud.update_user(db=db, user=user, updated_data={"password": hashed_password})
+
+        return UserMessageResponse(message=strings.PASSWORD_UPDATE_SUCCESS)
 
     except exc.SQLAlchemyError as e:
         # Sent error response if any SQL exception caught
