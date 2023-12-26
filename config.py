@@ -35,6 +35,12 @@ DEFAULT_RECIPIENT_EMAIL = os.getenv("DEFAULT_RECIPIENT_EMAIL")
 
 # Logging config
 def get_logger(name) -> logging.Logger:
+    """
+    Get a common configurable logger instance
+    :param name: logger name
+    :return: Instance of logger
+    """
+
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(name)
     return logger

@@ -1,3 +1,7 @@
+"""
+Contains email related util functions
+"""
+
 import smtplib
 import traceback
 from email.mime.multipart import MIMEMultipart
@@ -18,7 +22,8 @@ def create_multipart_message(
     """
     Creates a MIME multipart message object.
     Uses only the Python `email` standard library.
-    Emails, both sender and recipients, can be just the email string or have the format 'The Name <the_email@host.com>'.
+    Emails, both sender and recipients, can be just the email string or have the format
+    'The Name <the_email@host.com>'.
 
     :param sender: The sender.
     :param recipients: List of recipients. Needs to be a list, even if only one recipient.
@@ -35,7 +40,8 @@ def create_multipart_message(
     msg['To'] = ', '.join(recipients)
 
     # Record the MIME types of both parts - text/plain and text/html.
-    # According to RFC 2046, the last part of a multipart message, in this case the HTML message, is best and preferred.
+    # According to RFC 2046, the last part of a multipart message, in this case
+    # the HTML message, is best and preferred.
     if text:
         part = MIMEText(text, 'plain')
         msg.attach(part)
@@ -61,7 +67,7 @@ async def send_mail(
 
     # Use default email address to send free emails specifically while using AWS SES
     recipients = [config.DEFAULT_RECIPIENT_EMAIL]
-    message = create_multipart_message(config.FROM_EMAIL, recipients, title, text, html)
+    message = create_multipart_message(f"Yify <{config.FROM_EMAIL}>", recipients, title, text, html)
 
     try:
         # Connect to the SMTP server
@@ -76,7 +82,7 @@ async def send_mail(
         logger.info("Email sent successfully!")
         return True
 
-    except Exception as e:
+    except (smtplib.SMTPException, smtplib.SMTPResponseException) as e:
         logger.error({
             "error": str(e),
             "traceback": traceback.format_exc()

@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import bcrypt
 import jwt
-from jinja2 import Template, Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 
 import config
 import strings

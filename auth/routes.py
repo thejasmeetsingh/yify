@@ -20,7 +20,7 @@ from auth.schemas import (
     RefreshTokenResponse,
     UserResponse, UserUpdate, UserMessageResponse, ChangePassword, ResetPassword
 )
-from base.email import send_mail
+from base.emails import send_mail
 from base.utils import (
     check_password,
     generate_auth_tokens,
