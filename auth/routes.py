@@ -20,12 +20,13 @@ from auth.schemas import (
     RefreshTokenResponse,
     UserResponse, UserUpdate, UserMessageResponse, ChangePassword, ResetPassword
 )
+from base.email import send_mail
 from base.utils import (
     check_password,
     generate_auth_tokens,
     get_jwt_payload,
     validate_password,
-    get_hashed_password, get_auth_token
+    get_hashed_password, get_auth_token, html_to_string
 )
 from base.dependencies import get_db, get_current_user
 
@@ -364,6 +365,13 @@ async def get_reset_password_link(
 
     link += f"/reset-password/?token={token}"
 
-    # TODO: Send Email
+    html = await html_to_string(filename="reset_password.html", context={"link": link})
+    is_send_successfully = await send_mail(title="Reset Password", html=html)
+
+    if not is_send_successfully:
+        raise HTTPException(
+            detail=strings.EMAIL_ERROR,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
 
     return UserMessageResponse(message=strings.RESET_PASSWORD_LINK_SUCCESS)

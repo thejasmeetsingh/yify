@@ -6,6 +6,7 @@ from datetime import timedelta
 
 import bcrypt
 import jwt
+from jinja2 import Template, Environment, FileSystemLoader
 
 import config
 import strings
@@ -141,3 +142,20 @@ def get_jwt_payload(token: str) -> dict | None:
         return payload
     except (jwt.ExpiredSignatureError, jwt.DecodeError) as _:
         return None
+
+
+async def html_to_string(filename: str, context: dict) -> str:
+    """
+    Given a filename, Read the file and convert it from HTML to string
+
+    :param filename: A string containing filename
+    :param context: Dict containing the dynamic data for template
+    :return: HTML string
+    """
+
+    template_path = config.BASE_DIR / "templates"
+    template_env = Environment(loader=FileSystemLoader(template_path))
+
+    template = template_env.get_template(filename)
+    rendered_html = template.render(**context)
+    return rendered_html
