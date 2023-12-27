@@ -38,7 +38,7 @@ templates = Jinja2Templates(directory=config.TEMPLATES_PATH)
 
 
 @router.post(path="/register/", response_model=UserJWT, status_code=status.HTTP_201_CREATED)
-async def register(user: UserCreate, db: Session = Depends(get_db)):
+async def register(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
     """
     Handler for creating a user object in DB when user signup/register themselves
 
@@ -88,7 +88,7 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post(path="/login/", response_model=UserJWT, status_code=status.HTTP_200_OK)
-async def login(user: UserLogin, db: Session = Depends(get_db)):
+async def login(user: UserLogin, db: Annotated[Session, Depends(get_db)]):
     """
     Login API handler
 
@@ -132,7 +132,7 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
     response_model=RefreshTokenResponse,
     status_code=status.HTTP_200_OK
 )
-async def refresh_token(token: RefreshToken, db: Session = Depends(get_db)):
+async def refresh_token(token: RefreshToken, db: Annotated[Session, Depends(get_db)]):
     """
     API handler for refreshing access token
 
@@ -180,7 +180,7 @@ async def refresh_token(token: RefreshToken, db: Session = Depends(get_db)):
 
 
 @router.get(path="/profile/", response_model=UserResponse, status_code=status.HTTP_200_OK)
-async def profile_details(user: User = Depends(get_current_user)):
+async def profile_details(user: Annotated[User, Depends(get_current_user)]):
     """
     API for fetching current user profile details
 
@@ -194,8 +194,8 @@ async def profile_details(user: User = Depends(get_current_user)):
 @router.patch(path="/profile/", response_model=UserResponse, status_code=status.HTTP_200_OK)
 async def update_profile_details(
         user_update: UserUpdate,
-        user: User = Depends(get_current_user),
-        db: Session = Depends(get_db)
+        user: Annotated[User, Depends(get_current_user)],
+        db: Annotated[Session, Depends(get_db)]
 ):
     """
     Update user profile details
@@ -228,7 +228,10 @@ async def update_profile_details(
 
 
 @router.delete(path="/profile/", response_model=UserMessageResponse, status_code=status.HTTP_200_OK)
-async def delete_profile(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def delete_profile(
+        user: Annotated[User, Depends(get_current_user)],
+        db: Annotated[Session, Depends(get_db)]
+):
     """
     Delete user profile details
 
@@ -256,8 +259,8 @@ async def delete_profile(user: User = Depends(get_current_user), db: Session = D
 )
 async def update_password(
         change_password: ChangePassword,
-        user: User = Depends(get_current_user),
-        db: Session = Depends(get_db)
+        user: Annotated[User, Depends(get_current_user)],
+        db: Annotated[Session, Depends(get_db)]
 ):
     """
     Change/Update current user password
@@ -330,7 +333,7 @@ async def update_password(
 async def get_reset_password_link(
         reset_password: ResetPassword,
         request: Request,
-        db: Session = Depends(get_db)
+        db: Annotated[Session, Depends(get_db)]
 ):
     """
     Reset password route for getting reset password link
@@ -415,7 +418,7 @@ async def process_reset_password_form(
         password: Annotated[str, Form()],
         confirm_password: Annotated[str, Form()],
         token: Annotated[str, Form()],
-        db: Session = Depends(get_db)
+        db: Annotated[Session, Depends(get_db)]
 ):
     """
     Process reset password form data
