@@ -21,8 +21,9 @@ from auth.schemas import (
     UserLogin,
     RefreshToken,
     RefreshTokenResponse,
-    UserResponse, UserUpdate, UserMessageResponse, ChangePassword, ResetPassword, ResetPasswordForm
+    UserResponse, UserUpdate, UserMessageResponse, ChangePassword, ResetPassword
 )
+from base.dependencies import get_db, get_current_user
 from base.emails import send_mail
 from base.utils import (
     check_password,
@@ -31,7 +32,6 @@ from base.utils import (
     validate_password,
     get_hashed_password, get_auth_token, html_to_string
 )
-from base.dependencies import get_db, get_current_user
 
 router = APIRouter()
 templates = Jinja2Templates(directory=config.TEMPLATES_PATH)
