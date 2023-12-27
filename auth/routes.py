@@ -2,8 +2,11 @@
 Contain all user and auth related routes
 """
 from datetime import timedelta
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, HTTPException, status
+from fastapi import APIRouter, Depends, Request, HTTPException, status, Form
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
@@ -20,16 +23,18 @@ from auth.schemas import (
     RefreshTokenResponse,
     UserResponse, UserUpdate, UserMessageResponse, ChangePassword, ResetPassword
 )
+from base.dependencies import get_db, get_current_user
+from base.emails import send_mail
 from base.utils import (
     check_password,
     generate_auth_tokens,
     get_jwt_payload,
     validate_password,
-    get_hashed_password, get_auth_token
+    get_hashed_password, get_auth_token, html_to_string
 )
-from base.dependencies import get_db, get_current_user
 
 router = APIRouter()
+templates = Jinja2Templates(directory=config.TEMPLATES_PATH)
 
 
 @router.post(path="/register/", response_model=UserJWT, status_code=status.HTTP_201_CREATED)
@@ -362,8 +367,111 @@ async def get_reset_password_link(
     if request.url.port:
         link += f":{request.url.port}"
 
-    link += f"/reset-password/?token={token}"
+    link += f"/v1/reset-password-form/?token={token}"
 
-    # TODO: Send Email
+    html = await html_to_string(filename="reset_password.html", context={"link": link})
+    is_send_successfully = await send_mail(title="Reset Password", html=html)
+
+    if not is_send_successfully:
+        raise HTTPException(
+            detail=strings.EMAIL_ERROR,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
 
     return UserMessageResponse(message=strings.RESET_PASSWORD_LINK_SUCCESS)
+
+
+@router.get(
+    path="/reset-password-form/",
+    response_class=HTMLResponse,
+    status_code=status.HTTP_200_OK
+)
+async def get_reset_password_form(request: Request, token: str):
+    """
+    Render reset password form.
+
+    :param request: Request object
+    :param token: String containing JWT token for reset password
+    :return: Jinja template response
+    """
+
+    return templates.TemplateResponse(
+        name="reset_password_form.html",
+        context={
+            "request": request,
+            "is_valid": False,
+            "token": token
+        }
+    )
+
+
+@router.post(
+    path="/validate-password/",
+    response_class=HTMLResponse,
+    status_code=status.HTTP_200_OK
+)
+async def process_reset_password_form(
+        request: Request,
+        password: Annotated[str, Form()],
+        confirm_password: Annotated[str, Form()],
+        token: Annotated[str, Form()],
+        db: Session = Depends(get_db)
+):
+    """
+    Process reset password form data
+
+    :param request: Request object
+    :param password: New password
+    :param confirm_password: New confirm password
+    :param token: String containing reset password token
+    :param db: DB session object
+    :return: Jinja template response
+    """
+
+    context = {
+        "request": request,
+        "message": strings.PASSWORD_UPDATE_SUCCESS,
+        "token": token
+    }
+    is_password_valid = True
+    payload = get_jwt_payload(token)
+
+    if not payload:
+        context["message"] = strings.INVALID_RESET_PASSWORD_LINK
+        is_password_valid = False
+
+    user_id = payload.get("user_id")
+
+    if not user_id and is_password_valid:
+        context["message"] = strings.INVALID_RESET_PASSWORD_LINK
+        is_password_valid = False
+
+    db_user = crud.get_user_by_id(db=db, user_id=user_id)
+
+    if not db_user and is_password_valid:
+        context["message"] = strings.INVALID_RESET_PASSWORD_LINK
+        is_password_valid = False
+
+    if password != confirm_password and is_password_valid:
+        context["message"] = strings.PASSWORD_NOT_MATCH
+        is_password_valid = False
+
+    if is_password_valid:
+        password_error = validate_password(
+            password=password,
+            email=db_user.email,
+            first_name=db_user.first_name,
+            last_name=db_user.last_name
+        )
+
+        if password_error:
+            context["message"] = password_error
+            is_password_valid = False
+
+    if is_password_valid:
+        # Generate hashed password based on new password and update it
+        hashed_password = get_hashed_password(confirm_password)
+        crud.update_user(db=db, user=db_user, updated_data={"password": hashed_password})
+        context["is_valid"] = is_password_valid
+
+    return templates.TemplateResponse(name="reset_password_form.html", context=context)

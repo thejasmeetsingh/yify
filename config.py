@@ -1,14 +1,17 @@
 """
-Centralize place to load all enviorment varriables
+Centralize place to load all environment variables
 """
 
 import os
+import logging
 from pathlib import Path
 
 from dotenv import load_dotenv
+from jinja2 import Environment, FileSystemLoader
 
 load_dotenv()
 
+# Load env variables
 BASE_DIR = Path(__file__).resolve().parent
 
 DB_USER = os.getenv("DB_USER")
@@ -22,3 +25,27 @@ ACCESS_TOKEN_EXP_MINUTES = os.getenv("ACCESS_TOKEN_EXP_MINUTES")
 REFRESH_TOKEN_EXP_MINUTES = os.getenv("REFRESH_TOKEN_EXP_MINUTES")
 
 RESET_PASSWORD_EXP_MINUTES = os.getenv("RESET_PASSWORD_EXP_MINUTES")
+
+FROM_EMAIL = os.getenv("FROM_EMAIL")
+SMTP_SERVER = os.getenv("SMTP_SERVER")
+SMTP_PORT = os.getenv("SMTP_PORT")
+SMTP_USERNAME = os.getenv("SMTP_USERNAME")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+DEFAULT_RECIPIENT_EMAIL = os.getenv("DEFAULT_RECIPIENT_EMAIL")
+
+# Template config
+TEMPLATES_PATH = BASE_DIR / "templates"
+JINJA_TEMPLATE_ENV = Environment(loader=FileSystemLoader(TEMPLATES_PATH))
+
+
+# Logging config
+def get_logger(name) -> logging.Logger:
+    """
+    Get a common configurable logger instance
+    :param name: logger name
+    :return: Instance of logger
+    """
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(name)
+    return logger
