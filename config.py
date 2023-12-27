@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 
 from dotenv import load_dotenv
+from jinja2 import Environment, FileSystemLoader
 
 load_dotenv()
 
@@ -31,6 +32,10 @@ SMTP_PORT = os.getenv("SMTP_PORT")
 SMTP_USERNAME = os.getenv("SMTP_USERNAME")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 DEFAULT_RECIPIENT_EMAIL = os.getenv("DEFAULT_RECIPIENT_EMAIL")
+
+# Template config
+TEMPLATES_PATH = BASE_DIR / "templates"
+JINJA_TEMPLATE_ENV = Environment(loader=FileSystemLoader(TEMPLATES_PATH))
 
 
 # Logging config

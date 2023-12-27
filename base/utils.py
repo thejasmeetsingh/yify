@@ -6,7 +6,6 @@ from datetime import timedelta
 
 import bcrypt
 import jwt
-from jinja2 import Environment, FileSystemLoader
 
 import config
 import strings
@@ -153,9 +152,6 @@ async def html_to_string(filename: str, context: dict) -> str:
     :return: HTML string
     """
 
-    template_path = config.BASE_DIR / "templates"
-    template_env = Environment(loader=FileSystemLoader(template_path))
-
-    template = template_env.get_template(filename)
+    template = config.JINJA_TEMPLATE_ENV.get_template(filename)
     rendered_html = template.render(**context)
     return rendered_html

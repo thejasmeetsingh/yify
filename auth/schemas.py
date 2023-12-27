@@ -90,6 +90,16 @@ class ResetPassword(BaseModel):
     email: str
 
 
+class ResetPasswordForm(BaseModel):
+    """
+    Reset password form schema
+    """
+
+    password: str
+    confirm_password: str
+    token: str
+
+
 class JWT(BaseModel):
     """
     JWT response schema
