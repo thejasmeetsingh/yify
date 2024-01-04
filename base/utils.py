@@ -7,7 +7,7 @@ from datetime import timedelta
 import bcrypt
 import jwt
 
-import config
+import settings
 import strings
 from auth.models import User
 
@@ -101,7 +101,7 @@ def get_auth_token(data: dict, exp: timedelta) -> str:
 
     _data = data.copy()
     _data.update({"exp": datetime.utcnow() + exp})
-    encoded_jwt = jwt.encode(payload=_data, key=config.SECRET_KEY, algorithm="HS256")
+    encoded_jwt = jwt.encode(payload=_data, key=settings.SECRET_KEY, algorithm="HS256")
     return encoded_jwt
 
 
@@ -116,11 +116,11 @@ def generate_auth_tokens(db_user: User) -> dict[str, str]:
 
     access_token = get_auth_token(
         data=payload,
-        exp=timedelta(minutes=int(config.ACCESS_TOKEN_EXP_MINUTES))
+        exp=timedelta(minutes=int(settings.ACCESS_TOKEN_EXP_MINUTES))
     )
     refresh_token = get_auth_token(
         data=payload,
-        exp=timedelta(minutes=int(config.REFRESH_TOKEN_EXP_MINUTES))
+        exp=timedelta(minutes=int(settings.REFRESH_TOKEN_EXP_MINUTES))
     )
 
     return {
@@ -137,7 +137,7 @@ def get_jwt_payload(token: str) -> dict | None:
     """
 
     try:
-        payload = jwt.decode(jwt=token, key=config.SECRET_KEY, algorithms="HS256")
+        payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms="HS256")
         return payload
     except (jwt.ExpiredSignatureError, jwt.DecodeError) as _:
         return None
@@ -152,6 +152,6 @@ async def html_to_string(filename: str, context: dict) -> str:
     :return: HTML string
     """
 
-    template = config.JINJA_TEMPLATE_ENV.get_template(filename)
+    template = settings.JINJA_TEMPLATE_ENV.get_template(filename)
     rendered_html = template.render(**context)
     return rendered_html

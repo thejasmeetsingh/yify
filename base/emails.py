@@ -7,9 +7,9 @@ import traceback
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-import config
+import settings
 
-logger = config.get_logger(name=__name__)
+logger = settings.get_logger(name=__name__)
 
 
 def create_multipart_message(
@@ -66,18 +66,18 @@ async def send_mail(
     """
 
     # Use default email address to send free emails specifically while using AWS SES
-    recipients = [config.DEFAULT_RECIPIENT_EMAIL]
-    message = create_multipart_message(f"Yify <{config.FROM_EMAIL}>", recipients, title, text, html)
+    recipients = [settings.DEFAULT_RECIPIENT_EMAIL]
+    message = create_multipart_message(f"Yify <{settings.FROM_EMAIL}>", recipients, title, text, html)
 
     try:
         # Connect to the SMTP server
-        with smtplib.SMTP(config.SMTP_SERVER, config.SMTP_PORT) as server:
+        with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
             # Start TLS connection
             server.starttls()
             # Login to the SMTP server
-            server.login(config.SMTP_USERNAME, config.SMTP_PASSWORD)
+            server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
             # Send the email
-            server.sendmail(config.FROM_EMAIL, recipients, message.as_string())
+            server.sendmail(settings.FROM_EMAIL, recipients, message.as_string())
 
         logger.info("Email sent successfully!")
         return True

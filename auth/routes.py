@@ -1,6 +1,7 @@
 """
 Contain all user and auth related routes
 """
+
 from datetime import timedelta
 from typing import Annotated
 
@@ -10,18 +11,18 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
-import config
+import settings
 import strings
 from auth import crud
 from auth.models import User
 from auth.schemas import (
-    UserCreate,
-    UserJWT,
-    JWT,
-    UserLogin,
-    RefreshToken,
+    UserCreateRequest,
+    UserJWTResponse,
+    JWTResponse,
+    UserLoginRequest,
+    RefreshTokenRequest,
     RefreshTokenResponse,
-    UserResponse, UserUpdate, UserMessageResponse, ChangePassword, ResetPassword
+    UserResponse, UserUpdateRequest, UserMessageResponse, ChangePasswordRequest, ResetPasswordRequest
 )
 from base.dependencies import get_db, get_current_user
 from base.emails import send_mail
@@ -34,11 +35,11 @@ from base.utils import (
 )
 
 router = APIRouter()
-templates = Jinja2Templates(directory=config.TEMPLATES_PATH)
+templates = Jinja2Templates(directory=settings.TEMPLATES_PATH)
 
 
-@router.post(path="/register/", response_model=UserJWT, status_code=status.HTTP_201_CREATED)
-async def register(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
+@router.post(path="/register/", response_model=UserJWTResponse, status_code=status.HTTP_201_CREATED)
+async def register(user: UserCreateRequest, db: Annotated[Session, Depends(get_db)]):
     """
     Handler for creating a user object in DB when user signup/register themselves
 
@@ -75,9 +76,9 @@ async def register(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
 
         # Generate auth tokens
         auth_tokens = generate_auth_tokens(db_user)
-        jwt = JWT(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
+        jwt = JWTResponse(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
 
-        return UserJWT(message=strings.ACCOUNT_CREATED_SUCCESS, data=db_user, tokens=jwt)
+        return UserJWTResponse(message=strings.ACCOUNT_CREATED_SUCCESS, data=db_user, tokens=jwt)
 
     except exc.SQLAlchemyError as e:
         # Sent error response if any SQL exception caught
@@ -87,8 +88,8 @@ async def register(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
         ) from e
 
 
-@router.post(path="/login/", response_model=UserJWT, status_code=status.HTTP_200_OK)
-async def login(user: UserLogin, db: Annotated[Session, Depends(get_db)]):
+@router.post(path="/login/", response_model=UserJWTResponse, status_code=status.HTTP_200_OK)
+async def login(user: UserLoginRequest, db: Annotated[Session, Depends(get_db)]):
     """
     Login API handler
 
@@ -115,9 +116,9 @@ async def login(user: UserLogin, db: Annotated[Session, Depends(get_db)]):
 
         # Generate auth tokens
         auth_tokens = generate_auth_tokens(db_user)
-        jwt = JWT(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
+        jwt = JWTResponse(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
 
-        return UserJWT(message=strings.LOGIN_SUCCESS, data=db_user, tokens=jwt)
+        return UserJWTResponse(message=strings.LOGIN_SUCCESS, data=db_user, tokens=jwt)
 
     except exc.SQLAlchemyError as e:
         # Sent error response if any SQL exception caught
@@ -132,7 +133,7 @@ async def login(user: UserLogin, db: Annotated[Session, Depends(get_db)]):
     response_model=RefreshTokenResponse,
     status_code=status.HTTP_200_OK
 )
-async def refresh_token(token: RefreshToken, db: Annotated[Session, Depends(get_db)]):
+async def refresh_token(token: RefreshTokenRequest, db: Annotated[Session, Depends(get_db)]):
     """
     API handler for refreshing access token
 
@@ -174,7 +175,7 @@ async def refresh_token(token: RefreshToken, db: Annotated[Session, Depends(get_
 
     # Generate auth tokens
     auth_tokens = generate_auth_tokens(db_user)
-    jwt = JWT(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
+    jwt = JWTResponse(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
 
     return RefreshTokenResponse(message=strings.TOKEN_REFRESH_SUCCESS, data=jwt)
 
@@ -193,7 +194,7 @@ async def profile_details(user: Annotated[User, Depends(get_current_user)]):
 
 @router.patch(path="/profile/", response_model=UserResponse, status_code=status.HTTP_200_OK)
 async def update_profile_details(
-        user_update: UserUpdate,
+        user_update: UserUpdateRequest,
         user: Annotated[User, Depends(get_current_user)],
         db: Annotated[Session, Depends(get_db)]
 ):
@@ -258,7 +259,7 @@ async def delete_profile(
     status_code=status.HTTP_200_OK
 )
 async def update_password(
-        change_password: ChangePassword,
+        change_password: ChangePasswordRequest,
         user: Annotated[User, Depends(get_current_user)],
         db: Annotated[Session, Depends(get_db)]
 ):
@@ -331,7 +332,7 @@ async def update_password(
     status_code=status.HTTP_200_OK
 )
 async def get_reset_password_link(
-        reset_password: ResetPassword,
+        reset_password: ResetPasswordRequest,
         request: Request,
         db: Annotated[Session, Depends(get_db)]
 ):
@@ -362,7 +363,7 @@ async def get_reset_password_link(
     # Generate a token for reset password link
     token = get_auth_token(
         data={"user_id": str(db_user.id)},
-        exp=timedelta(minutes=int(config.RESET_PASSWORD_EXP_MINUTES))
+        exp=timedelta(minutes=int(settings.RESET_PASSWORD_EXP_MINUTES))
     )
 
     # Create the reset password link
