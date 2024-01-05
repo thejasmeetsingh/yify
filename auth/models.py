@@ -20,6 +20,7 @@ class User(Base):
     id = sa.Column(sa.UUID, primary_key=True, index=True)
     created_at = sa.Column(sa.DateTime)
     modified_at = sa.Column(sa.DateTime)
+
     email = sa.Column(sa.String, unique=True, index=True)
     password = sa.Column(sa.String)
     first_name = sa.Column(sa.String)
