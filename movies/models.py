@@ -51,6 +51,8 @@ class Rating(Base):
     rating = sa.Column(sa.Float(precision=2, asdecimal=True, decimal_return_scale=2))
     review = sa.Column(sa.String, nullable=True)
 
+    movies = relationship("Movie", back_populates="movies")
+
     __tablename__ = "ratings"
 
     __table_args__ = (
