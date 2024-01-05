@@ -60,14 +60,12 @@ def add_user(db: Session, movie: schemas.MovieAddRequest, added_by_id: str):
         name=movie.name,
         year=movie.year,
         description=movie.description,
-        avg_rating=0.0,
         extra=movie.extra,
         added_by=added_by_id
     )
 
     db.add(db_movie)
     db.commit()
-    db.refresh(db_movie)
 
     return db_movie
 
@@ -101,3 +99,59 @@ def delete_user(db: Session, movie: models.Movie):
 
     db.execute(delete(models.Movie).where(models.Movie.id == movie.id))
     db.commit()
+
+
+def add_rating(db: Session, rating_request: schemas.RatingRequest, user_id: str):
+    """
+    Add rating of a movie in DB
+
+    :param db: DB session object
+    :param rating_request: Pydantic rating instance
+    :param user_id: Current User UUID
+    """
+
+    db_rating = models.Rating(
+        id=uuid.uuid4(),
+        created_at=datetime.utcnow(),
+        modified_at=datetime.utcnow(),
+        user_id=user_id,
+        movie_id=rating_request.movie_id,
+        rating=rating_request.rating,
+        review=rating_request.review
+    )
+
+    db.add(db_rating)
+    db.commit()
+
+    # Update movie rating stat
+    with db.begin():
+        movie = db.query(models.Movie).filter_by(id=rating_request.movie_id).with_for_update().first()
+        movie.ratings_count += 1
+        movie.ratings_sum += rating_request.rating
+
+        db.add(movie)
+        db.commit()
+
+    return db_rating
+
+
+def get_movie_ratings(db: Session, movie_id: str):
+    """
+    Get ratings by a specific movie
+
+    :param db: DB session object
+    :param movie_id: Movie UUID
+    """
+
+    return db.query(models.Rating).filter_by(movie_id=movie_id).all()
+
+
+def get_user_ratings(db: Session, user_id: str):
+    """
+    Get ratings posted by a user
+
+    :param db: DB session object
+    :param user_id: User UUID
+    """
+
+    return db.query(models.Rating).filter_by(user_id=user_id).all()

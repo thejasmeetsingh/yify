@@ -22,8 +22,11 @@ class Movie(Base):
     name = sa.Column(sa.String, unique=True, index=True)
     year = sa.Column(sa.Integer)
     description = sa.Column(sa.Text(length=2000), nullable=True)
-    avg_rating = sa.Column(sa.Float(precision=2, asdecimal=True, decimal_return_scale=2))
     extra = sa.Column(sa.JSON, default={})  # This will store any other metadata related to the movie
+
+    # Rating stat
+    ratings_count = sa.Column(sa.Integer, default=0)
+    ratings_sum = sa.Column(sa.Float, default=0.0)
 
     user = relationship("User", back_populates="users")
 
