@@ -1,5 +1,5 @@
 """
-Contain user profile related model
+Contain movie related model
 """
 
 import sqlalchemy as sa
@@ -30,8 +30,32 @@ class Movie(Base):
     __tablename__ = "movies"
 
     __table_args__ = (
-        sa.UniqueConstraint('name', name='unique_movie_name'),
+        sa.UniqueConstraint("name", name="unique_movie_name"),
     )
 
     def __str__(self):
         return self.name
+
+
+class Rating(Base):
+    """
+    Store rating given by user to a movie
+    """
+
+    id = sa.Column(sa.UUID, primary_key=True, index=True)
+    created_at = sa.Column(sa.DateTime)
+    modified_at = sa.Column(sa.DateTime)
+
+    user_id = sa.Column(sa.UUID, sa.ForeignKey("users.id"))
+    movie_id = sa.Column(sa.UUID, sa.ForeignKey("movies.id"))
+    rating = sa.Column(sa.Float(precision=2, asdecimal=True, decimal_return_scale=2))
+    review = sa.Column(sa.String, nullable=True)
+
+    __tablename__ = "ratings"
+
+    __table_args__ = (
+        sa.UniqueConstraint("user_id", "movie_id", name="unique_movie_rating"),
+    )
+
+    def __str__(self):
+        return self.created_at
