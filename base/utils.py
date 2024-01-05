@@ -101,7 +101,8 @@ def get_auth_token(data: dict, exp: timedelta) -> str:
 
     _data = data.copy()
     _data.update({"exp": datetime.utcnow() + exp})
-    encoded_jwt = jwt.encode(payload=_data, key=settings.SECRET_KEY, algorithm="HS256")
+    encoded_jwt = jwt.encode(
+        payload=_data, key=settings.SECRET_KEY, algorithm="HS256")
     return encoded_jwt
 
 
@@ -116,7 +117,7 @@ def generate_auth_tokens(db_user: User) -> dict[str, str]:
 
     access_token = get_auth_token(
         data=payload,
-        exp=timedelta(minutes=int(settings.ACCESS_TOKEN_EXP_MINUTES))
+        exp=timedelta(minutes=int(settings.RESET_PASSWORD_EXP_MINUTES))
     )
     refresh_token = get_auth_token(
         data=payload,
@@ -137,7 +138,8 @@ def get_jwt_payload(token: str) -> dict | None:
     """
 
     try:
-        payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms="HS256")
+        payload = jwt.decode(
+            jwt=token, key=settings.SECRET_KEY, algorithms=["HS256"])
         return payload
     except (jwt.ExpiredSignatureError, jwt.DecodeError) as _:
         return None

@@ -40,6 +40,15 @@ class MovieAddRequest(BaseModel):
     extra: dict
 
 
+class MovieResponse(BaseModel):
+    """
+    Movie response schema
+    """
+
+    message: str
+    data: Movie
+
+
 class RatingRequest(BaseModel):
     """
     Movie rating request schema

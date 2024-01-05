@@ -35,3 +35,4 @@ RESET_PASSWORD_LINK_SUCCESS = "Reset password link send to your email address su
 EMAIL_ERROR = "Error caught while sending email, Please try again later."
 INVALID_RESET_PASSWORD_LINK = "Invalid reset password link or link is expired"
 PASSWORD_NOT_MATCH = "New password and confirm password does not match"
+MOVIE_ADDED_SUCCESSFULLY = "Movie details added successfully!"

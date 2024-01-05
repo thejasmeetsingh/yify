@@ -3,7 +3,7 @@ Contain movie related model
 """
 
 import sqlalchemy as sa
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 
 from database import Base
 
@@ -38,6 +38,12 @@ class Movie(Base):
 
     def __str__(self):
         return self.name
+
+    @validates("year")
+    def validate_year(self, _, value):
+        if not (value and isinstance(value, int) and 1000 <= value <= 9999):
+            raise ValueError("Invalid year value")
+        return value
 
 
 class Rating(Base):

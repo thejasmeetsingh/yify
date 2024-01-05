@@ -76,7 +76,8 @@ async def register(user: UserCreateRequest, db: Annotated[Session, Depends(get_d
 
         # Generate auth tokens
         auth_tokens = generate_auth_tokens(db_user)
-        jwt = JWTResponse(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
+        jwt = JWTResponse(
+            access=auth_tokens["access"], refresh=auth_tokens["refresh"])
 
         return UserJWTResponse(message=strings.ACCOUNT_CREATED_SUCCESS, data=db_user, tokens=jwt)
 
@@ -116,7 +117,8 @@ async def login(user: UserLoginRequest, db: Annotated[Session, Depends(get_db)])
 
         # Generate auth tokens
         auth_tokens = generate_auth_tokens(db_user)
-        jwt = JWTResponse(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
+        jwt = JWTResponse(
+            access=auth_tokens["access"], refresh=auth_tokens["refresh"])
 
         return UserJWTResponse(message=strings.LOGIN_SUCCESS, data=db_user, tokens=jwt)
 
@@ -175,7 +177,8 @@ async def refresh_token(token: RefreshTokenRequest, db: Annotated[Session, Depen
 
     # Generate auth tokens
     auth_tokens = generate_auth_tokens(db_user)
-    jwt = JWTResponse(access=auth_tokens["access"], refresh=auth_tokens["refresh"])
+    jwt = JWTResponse(
+        access=auth_tokens["access"], refresh=auth_tokens["refresh"])
 
     return RefreshTokenResponse(message=strings.TOKEN_REFRESH_SUCCESS, data=jwt)
 
@@ -217,7 +220,8 @@ async def update_profile_details(
             )
 
         # Update user details
-        updated_user = crud.update_user(db=db, user=user, updated_data=updated_data)
+        updated_user = crud.update_user(
+            db=db, user=user, updated_data=updated_data)
         return UserResponse(message=strings.PROFILE_DETAILS_UPDATED, data=updated_user)
 
     except exc.SQLAlchemyError as e:
@@ -314,7 +318,8 @@ async def update_password(
 
         # Generate hashed password based on new password and update it
         hashed_password = get_hashed_password(change_password.new_password)
-        crud.update_user(db=db, user=user, updated_data={"password": hashed_password})
+        crud.update_user(db=db, user=user, updated_data={
+                         "password": hashed_password})
 
         return UserMessageResponse(message=strings.PASSWORD_UPDATE_SUCCESS)
 
@@ -475,7 +480,8 @@ async def process_reset_password_form(
     if is_password_valid:
         # Generate hashed password based on new password and update it
         hashed_password = get_hashed_password(confirm_password)
-        crud.update_user(db=db, user=db_user, updated_data={"password": hashed_password})
+        crud.update_user(db=db, user=db_user, updated_data={
+                         "password": hashed_password})
         context["is_valid"] = is_password_valid
 
     return templates.TemplateResponse(name="reset_password_form.html", context=context)

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from movies import models, schemas
 
 
-def get_movie_by_id(db: Session, movie_id: str):
+def get_movie_by_id_db(db: Session, movie_id: str):
     """
     Return movie object with the given ID
 
@@ -22,7 +22,7 @@ def get_movie_by_id(db: Session, movie_id: str):
     return db.query(models.Movie).filter(models.Movie.id == movie_id).first()
 
 
-def get_movies(db: Session):
+def get_movies_db(db: Session):
     """
     Return list of movies
 
@@ -32,7 +32,7 @@ def get_movies(db: Session):
     return db.query(models.Movie).all()
 
 
-def get_movies_by_user(db: Session, user_id: str):
+def get_movies_by_user_db(db: Session, user_id: str):
     """
     Return list of movies added by a specific user
 
@@ -43,7 +43,7 @@ def get_movies_by_user(db: Session, user_id: str):
     return db.query(models.Movie).filter(models.Movie.added_by == user_id).all()
 
 
-def add_user(db: Session, movie: schemas.MovieAddRequest, added_by_id: str):
+def add_movie_db(db: Session, movie: schemas.MovieAddRequest, added_by_id: str):
     """
     Create a movie object in the DB
 
@@ -70,7 +70,7 @@ def add_user(db: Session, movie: schemas.MovieAddRequest, added_by_id: str):
     return db_movie
 
 
-def update_movie(db: Session, movie: models.Movie, updated_data: dict):
+def update_movie_db(db: Session, movie: models.Movie, updated_data: dict):
     """
     Update movie details as part of the partial update
 
@@ -80,7 +80,8 @@ def update_movie(db: Session, movie: models.Movie, updated_data: dict):
     :return: Refreshed DB object, With update data
     """
 
-    db.execute(update(models.Movie).where(models.Movie.id == movie.id).values(updated_data))
+    db.execute(update(models.Movie).where(
+        models.Movie.id == movie.id).values(updated_data))
 
     db.commit()
     db.refresh(movie)
@@ -88,7 +89,7 @@ def update_movie(db: Session, movie: models.Movie, updated_data: dict):
     return movie
 
 
-def delete_user(db: Session, movie: models.Movie):
+def delete_movie_db(db: Session, movie: models.Movie):
     """
     Delete a given movie object from DB
 
@@ -101,7 +102,7 @@ def delete_user(db: Session, movie: models.Movie):
     db.commit()
 
 
-def add_rating(db: Session, rating_request: schemas.RatingRequest, user_id: str):
+def add_rating_db(db: Session, rating_request: schemas.RatingRequest, user_id: str):
     """
     Add rating of a movie in DB
 
@@ -125,7 +126,10 @@ def add_rating(db: Session, rating_request: schemas.RatingRequest, user_id: str)
 
     # Update movie rating stat
     with db.begin():
-        movie = db.query(models.Movie).filter_by(id=rating_request.movie_id).with_for_update().first()
+        movie = db.query(models.Movie).filter_by(
+            id=rating_request.movie_id
+        ).with_for_update().first()
+
         movie.ratings_count += 1
         movie.ratings_sum += rating_request.rating
 
@@ -135,7 +139,7 @@ def add_rating(db: Session, rating_request: schemas.RatingRequest, user_id: str)
     return db_rating
 
 
-def get_movie_ratings(db: Session, movie_id: str):
+def get_movie_ratings_db(db: Session, movie_id: str):
     """
     Get ratings by a specific movie
 
@@ -146,7 +150,7 @@ def get_movie_ratings(db: Session, movie_id: str):
     return db.query(models.Rating).filter_by(movie_id=movie_id).all()
 
 
-def get_user_ratings(db: Session, user_id: str):
+def get_user_ratings_db(db: Session, user_id: str):
     """
     Get ratings posted by a user
 
