@@ -16,11 +16,15 @@ from movies import schemas
 router = APIRouter()
 
 
-@router.post(path="/movie/", response_model=schemas.MovieResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    path="/movie/",
+    response_model=schemas.MovieResponse,
+    status_code=status.HTTP_201_CREATED
+)
 async def add_movie(
-        movie_request: schemas.MovieAddRequest,
-        user: Annotated[User, Depends(get_current_user)],
-        db: Annotated[Session, Depends(get_db)]
+    movie_request: schemas.MovieAddRequest,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     API route for adding a movie
@@ -45,3 +49,14 @@ async def add_movie(
             detail=str(e),
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
+
+# @router.get(
+#     path="/movie/", 
+#     response_model=LimitOffsetPage[schemas.MovieListResponse], 
+#     status_code=status.HTTP_200_OK
+# )
+# async def get_movie_list(
+#     user: Annotated[User, Depends(get_current_user)],
+#     db: Annotated[Session, Depends(get_db)]
+# ):
+#     pass

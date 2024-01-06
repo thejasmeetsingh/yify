@@ -22,7 +22,9 @@ class Movie(Base):
     name = sa.Column(sa.String, unique=True, index=True)
     year = sa.Column(sa.Integer)
     description = sa.Column(sa.Text(length=2000), nullable=True)
-    extra = sa.Column(sa.JSON, default={})  # This will store any other metadata related to the movie
+
+    # This will store any other metadata related to the movie
+    extra = sa.Column(sa.JSON, default={})
 
     # Rating stat
     ratings_count = sa.Column(sa.Integer, default=0)
@@ -41,6 +43,8 @@ class Movie(Base):
 
     @validates("year")
     def validate_year(self, _, value):
+        """Validate the year entered by the user"""
+
         if not (value and isinstance(value, int) and 1000 <= value <= 9999):
             raise ValueError("Invalid year value")
         return value

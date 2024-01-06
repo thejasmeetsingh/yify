@@ -57,3 +57,14 @@ class RatingRequest(BaseModel):
     movie_id: UUID4
     rating: float
     review: str | None
+
+
+class MovieList(BaseModel):
+    """
+    Base movie list schema
+    """
+
+    id: UUID4
+    name: str
+    year: int
+    avg_rating: float
