@@ -68,3 +68,11 @@ class MovieList(BaseModel):
     name: str
     year: int
     avg_rating: float
+
+
+class MovieListResponse(BaseModel):
+    """
+    Movie list response schema
+    """
+
+    results: list[MovieList]

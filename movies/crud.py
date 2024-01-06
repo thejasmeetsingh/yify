@@ -1,5 +1,6 @@
 """
-Contain movie and rating related CRUD ORM queries/functions to interact with the data in the database.
+Contain movie and rating related CRUD ORM queries/functions 
+to interact with the data in the database.
 """
 
 import uuid
@@ -19,28 +20,34 @@ def get_movie_by_id_db(db: Session, movie_id: str):
     :param movie_id: Movie UUID
     :return: DB query object
     """
-    return db.query(models.Movie).filter(models.Movie.id == movie_id).first()
+    return db.query(models.Movie).get(movie_id)
 
 
-def get_movies_db(db: Session):
+def get_movies_db(db: Session, limit: int, offset: int):
     """
     Return list of movies
 
     :param db: DB Session object
+    :param limit: Limit the resulting rows
+    :param offset: Offset for the rows
     :return List of movie objects
     """
-    return db.query(models.Movie).all()
+
+    return db.query(models.Movie).limit(limit).offset(offset).all()
 
 
-def get_movies_by_user_db(db: Session, user_id: str):
+def get_movies_by_user_db(db: Session, user_id: str, limit: int, offset: int):
     """
     Return list of movies added by a specific user
 
     :param db: DB Session object
     :param user_id: User UUID
+    :param limit: Limit the resulting rows
+    :param offset: Offset for the rows
     :return: List of movie objects
     """
-    return db.query(models.Movie).filter(models.Movie.added_by == user_id).all()
+
+    return db.query(models.Movie).filter_by(added_by=user_id).limit(limit).offset(offset).all()
 
 
 def add_movie_db(db: Session, movie: schemas.MovieAddRequest, added_by_id: str):
@@ -126,9 +133,8 @@ def add_rating_db(db: Session, rating_request: schemas.RatingRequest, user_id: s
 
     # Update movie rating stat
     with db.begin():
-        movie = db.query(models.Movie).filter_by(
-            id=rating_request.movie_id
-        ).with_for_update().first()
+        movie = db.query(models.Movie).with_for_update().get(
+            rating_request.movie_id)
 
         movie.ratings_count += 1
         movie.ratings_sum += rating_request.rating
@@ -139,23 +145,27 @@ def add_rating_db(db: Session, rating_request: schemas.RatingRequest, user_id: s
     return db_rating
 
 
-def get_movie_ratings_db(db: Session, movie_id: str):
+def get_movie_ratings_db(db: Session, movie_id: str, limit: int, offset: int):
     """
     Get ratings by a specific movie
 
     :param db: DB session object
     :param movie_id: Movie UUID
+    :param limit: Limit the resulting rows
+    :param offset: Offset for the rows
     """
 
-    return db.query(models.Rating).filter_by(movie_id=movie_id).all()
+    return db.query(models.Rating).filter_by(movie_id=movie_id).limit(limit).offset(offset).all()
 
 
-def get_user_ratings_db(db: Session, user_id: str):
+def get_user_ratings_db(db: Session, user_id: str, limit: int, offset: int):
     """
     Get ratings posted by a user
 
     :param db: DB session object
     :param user_id: User UUID
+    :param limit: Limit the resulting rows
+    :param offset: Offset for the rowss
     """
 
-    return db.query(models.Rating).filter_by(user_id=user_id).all()
+    return db.query(models.Rating).filter_by(user_id=user_id).limit(limit).offset(offset).all()

@@ -50,13 +50,26 @@ async def add_movie(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
 
-# @router.get(
-#     path="/movie/", 
-#     response_model=LimitOffsetPage[schemas.MovieListResponse], 
-#     status_code=status.HTTP_200_OK
-# )
-# async def get_movie_list(
-#     user: Annotated[User, Depends(get_current_user)],
-#     db: Annotated[Session, Depends(get_db)]
-# ):
-#     pass
+
+@router.get(
+    path="/movie/",
+    response_model=schemas.MovieListResponse,
+    status_code=status.HTTP_200_OK
+)
+async def get_movie_list(
+    limit: int,
+    offset: int,
+    _: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
+):
+    """
+    API for getting list of movies
+
+    :param limit: query param
+    :param offset: query param
+    :param db: DB session object
+    :return: Instance of movie list response pydantic model
+    """
+
+    movies = crud.get_movies_db(db, limit, offset)
+    return schemas.MovieListResponse(results=movies)
