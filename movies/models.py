@@ -3,7 +3,7 @@ Contain movie related model
 """
 
 import sqlalchemy as sa
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, relationship
 
 import strings
 from database import Base
@@ -30,6 +30,8 @@ class Movie(Base):
     # Rating stat
     ratings_count = sa.Column(sa.Integer, default=0)
     ratings_sum = sa.Column(sa.Float, default=0.0)
+
+    rating = relationship("Rating", back_populates="movie")
 
     __tablename__ = "movies"
 
@@ -69,6 +71,8 @@ class Rating(Base):
     rating = sa.Column(
         sa.Float(precision=2, asdecimal=True, decimal_return_scale=2))
     review = sa.Column(sa.String, nullable=True)
+
+    movie = relationship("Movie", back_populates="rating")
 
     __tablename__ = "ratings"
 

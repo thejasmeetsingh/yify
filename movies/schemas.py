@@ -96,6 +96,14 @@ class RatingResponse(BaseModel):
     data: Rating
 
 
+class RatingListResponse(BaseModel):
+    """
+    Rating list response schema
+    """
+
+    results: list[Rating]
+
+
 class MovieList(BaseModel):
     """
     Base movie list schema
@@ -113,3 +121,21 @@ class MovieListResponse(BaseModel):
     """
 
     results: list[MovieList]
+
+
+class RatingList(BaseModel):
+    """
+    Rating list given by a user or to a movie response schema
+    """
+
+    movie: MovieList
+    rating: float
+    review: str | None
+
+
+class RatingListUserMovieResponse(BaseModel):
+    """
+    Response schema for rating list, Given by user or to a movie
+    """
+
+    results: list[RatingList]

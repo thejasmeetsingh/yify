@@ -294,3 +294,39 @@ async def add_rating(
             detail=strings.ADD_RATING_ERROR,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
+
+@router.get(
+    path="/user-rating/",
+    response_class=schemas.RatingListUserMovieResponse,
+    status_code=status.HTTP_200_OK
+)
+async def get_user_ratings(
+    limit: int,
+    offset: int,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
+):
+    """
+    API for getting ratings given by current user
+
+    :param limit: query param
+    :param offset: query param
+    :param user: Current User object
+    :param db: DB session object
+    :return: Instance of rating list user movie response schema
+    """
+
+    db_ratings = crud.get_user_ratings_db(db, user.id, limit, offset)
+
+    ratings = [schemas.RatingList(
+        rating=db_rating.rating,
+        review=db_rating.review,
+        movie=schemas.MovieList(
+            id=db_rating.movie.id,
+            name=db_rating.movie.name,
+            year=db_rating.movie.year,
+            avg_rating=db_rating.movie.get_avg_rating()
+        )
+    ) for db_rating in db_ratings]
+
+    return schemas.RatingListUserMovieResponse(results=ratings)
