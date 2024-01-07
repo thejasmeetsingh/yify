@@ -220,3 +220,36 @@ async def delete_movie(
             detail=strings.MOVIE_DELETE_ERROR,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
+
+
+@router.get(
+    path="/user-movie/",
+    response_model=schemas.MovieListResponse,
+    status_code=status.HTTP_200_OK
+)
+async def get_user_movie_list(
+    limit: int,
+    offset: int,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
+):
+    """
+    API for getting list of movies added by a user
+
+    :param limit: query param
+    :param offset: query param
+    :param user: Current User object
+    :param db: DB session object
+    :return: Instance of movie list response pydantic model
+    """
+
+    db_movies = crud.get_movies_by_user_db(db, user.id, limit, offset)
+
+    movies = [schemas.MovieList(
+        id=db_movie.id,
+        name=db_movie.name,
+        year=db_movie.year,
+        avg_rating=db_movie.get_avg_rating()
+    ) for db_movie in db_movies]
+
+    return schemas.MovieListResponse(results=movies)

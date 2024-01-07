@@ -13,11 +13,11 @@ logger = settings.get_logger(name=__name__)
 
 
 def create_multipart_message(
-        sender: str,
-        recipients: list,
-        title: str,
-        text: str = None,
-        html: str = None
+    sender: str,
+    recipients: list,
+    title: str,
+    text: str = None,
+    html: str = None
 ) -> MIMEMultipart:
     """
     Creates a MIME multipart message object.
@@ -53,9 +53,9 @@ def create_multipart_message(
 
 
 async def send_mail(
-        title: str,
-        text: str = None,
-        html: str = None,
+    title: str,
+    text: str = None,
+    html: str = None,
 ) -> bool:
     """
     Send email to recipient's, Using SMTP credentials.
