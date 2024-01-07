@@ -22,7 +22,11 @@ from auth.schemas import (
     UserLoginRequest,
     RefreshTokenRequest,
     RefreshTokenResponse,
-    UserResponse, UserUpdateRequest, UserMessageResponse, ChangePasswordRequest, ResetPasswordRequest
+    UserResponse,
+    UserUpdateRequest,
+    UserMessageResponse,
+    ChangePasswordRequest,
+    ResetPasswordRequest
 )
 from base.dependencies import get_db, get_current_user
 from base.emails import send_mail

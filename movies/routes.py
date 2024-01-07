@@ -58,7 +58,7 @@ async def add_movie(
     except exc.SQLAlchemyError as e:
         # Sent error response if any SQL exception caught
         raise HTTPException(
-            detail=str(e),
+            detail=strings.MOVIE_CREATE_ERROR,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
 

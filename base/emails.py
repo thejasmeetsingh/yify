@@ -67,7 +67,13 @@ async def send_mail(
 
     # Use default email address to send free emails specifically while using AWS SES
     recipients = [settings.DEFAULT_RECIPIENT_EMAIL]
-    message = create_multipart_message(f"Yify <{settings.FROM_EMAIL}>", recipients, title, text, html)
+    message = create_multipart_message(
+        f"Yify <{settings.FROM_EMAIL}>",
+        recipients,
+        title,
+        text,
+        html
+    )
 
     try:
         # Connect to the SMTP server
@@ -77,7 +83,8 @@ async def send_mail(
             # Login to the SMTP server
             server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
             # Send the email
-            server.sendmail(settings.FROM_EMAIL, recipients, message.as_string())
+            server.sendmail(settings.FROM_EMAIL,
+                            recipients, message.as_string())
 
         logger.info("Email sent successfully!")
         return True
