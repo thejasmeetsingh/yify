@@ -20,7 +20,7 @@ def get_user_by_id(db: Session, user_id: str):
     :param user_id: User UUID
     :return: DB query object
     """
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return db.query(models.User).get(user_id)
 
 
 def get_user_by_email(db: Session, email: str):
@@ -69,7 +69,8 @@ def update_user(db: Session, user: models.User, updated_data: dict):
     :return: Refreshed DB object, With update data
     """
 
-    db.execute(update(models.User).where(models.User.id == user.id).values(updated_data))
+    db.execute(update(models.User).where(
+        models.User.id == user.id).values(updated_data))
 
     db.commit()
     db.refresh(user)

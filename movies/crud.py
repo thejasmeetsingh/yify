@@ -68,7 +68,7 @@ def add_movie_db(db: Session, movie: schemas.MovieAddRequest, added_by_id: str):
         year=movie.year,
         description=movie.description,
         extra=movie.extra,
-        added_by=added_by_id
+        added_by_id=added_by_id
     )
 
     db.add(db_movie)

@@ -41,6 +41,7 @@ async def add_movie(
             movie=movie_request,
             added_by_id=str(user.id)
         )
+        setattr(movie, "avg_rating", movie.get_avg_rating())
 
         return schemas.MovieResponse(message=strings.MOVIE_ADDED_SUCCESSFULLY, data=movie)
     except exc.SQLAlchemyError as e:
@@ -71,5 +72,13 @@ async def get_movie_list(
     :return: Instance of movie list response pydantic model
     """
 
-    movies = crud.get_movies_db(db, limit, offset)
+    db_movies = crud.get_movies_db(db, limit, offset)
+
+    movies = [schemas.MovieList(
+        id=db_movie.id,
+        name=db_movie.name,
+        year=db_movie.year,
+        avg_rating=db_movie.get_avg_rating()
+    ) for db_movie in db_movies]
+
     return schemas.MovieListResponse(results=movies)
