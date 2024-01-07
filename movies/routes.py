@@ -284,7 +284,11 @@ async def add_rating(
             )
 
         db_rating = crud.add_rating_db(db, rating_request, user.id)
-        rating = schemas.Rating(rating=db_rating.rating, review=db_rating.review)
+        rating = schemas.Rating(
+            id=db_rating.id,
+            rating=db_rating.rating,
+            review=db_rating.review
+        )
 
         return schemas.RatingResponse(message=strings.ADD_RATING_SUCCESS, data=rating)
 
@@ -295,9 +299,10 @@ async def add_rating(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
 
+
 @router.get(
     path="/user-rating/",
-    response_class=schemas.RatingListUserMovieResponse,
+    response_model=schemas.RatingListMovieResponse,
     status_code=status.HTTP_200_OK
 )
 async def get_user_ratings(
@@ -313,12 +318,13 @@ async def get_user_ratings(
     :param offset: query param
     :param user: Current User object
     :param db: DB session object
-    :return: Instance of rating list user movie response schema
+    :return: Instance of rating list movie response schema
     """
 
     db_ratings = crud.get_user_ratings_db(db, user.id, limit, offset)
 
-    ratings = [schemas.RatingList(
+    ratings = [schemas.RatingMovieList(
+        id=db_rating.id,
         rating=db_rating.rating,
         review=db_rating.review,
         movie=schemas.MovieList(
@@ -329,4 +335,42 @@ async def get_user_ratings(
         )
     ) for db_rating in db_ratings]
 
-    return schemas.RatingListUserMovieResponse(results=ratings)
+    return schemas.RatingListMovieResponse(results=ratings)
+
+
+@router.get(
+    path="/movie-rating/",
+    response_model=schemas.RatingUserListResponse,
+    status_code=status.HTTP_200_OK
+)
+async def get_movie_ratings(
+    limit: int,
+    offset: int,
+    movie_id: uuid.UUID,
+    _: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
+):
+    """
+    API for getting ratings given by current users to a movie
+
+    :param limit: query param
+    :param offset: query param
+    :param movie_id: query parms
+    :param db: DB session object
+    :return: Instance of rating list user response schema
+    """
+
+    db_ratings = crud.get_movie_ratings_db(db, movie_id, limit, offset)
+
+    ratings = [schemas.RatingUserList(
+        id=db_rating.id,
+        rating=db_rating.rating,
+        review=db_rating.review,
+        user=schemas.UserRating(
+            id=db_rating.user.id,
+            first_name=db_rating.user.first_name,
+            last_name=db_rating.user.last_name
+        )
+    ) for db_rating in db_ratings]
+
+    return schemas.RatingUserListResponse(results=ratings)

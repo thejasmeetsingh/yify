@@ -83,6 +83,7 @@ class Rating(BaseModel):
     Rating response base schema
     """
 
+    id: UUID4
     rating: float
     review: str | None
 
@@ -123,19 +124,49 @@ class MovieListResponse(BaseModel):
     results: list[MovieList]
 
 
-class RatingList(BaseModel):
+class RatingMovieList(BaseModel):
     """
-    Rating list given by a user or to a movie response schema
+    Schema for rating list given by a user to movies
     """
 
-    movie: MovieList
+    id: UUID4
     rating: float
     review: str | None
+    movie: MovieList
 
 
-class RatingListUserMovieResponse(BaseModel):
+class RatingListMovieResponse(BaseModel):
     """
-    Response schema for rating list, Given by user or to a movie
+    Response schema for rating list, Given by a user to movies
     """
 
-    results: list[RatingList]
+    results: list[RatingMovieList]
+
+
+class UserRating(BaseModel):
+    """
+    User rating schema
+    """
+
+    id: UUID4
+    first_name: str
+    last_name: str
+
+
+class RatingUserList(BaseModel):
+    """
+    Schema for rating list given by users to a movies
+    """
+
+    id: UUID4
+    rating: float
+    review: str | None
+    user: UserRating
+
+
+class RatingUserListResponse(BaseModel):
+    """
+    Response schema for a movie given by users
+    """
+
+    results: list[RatingUserList]

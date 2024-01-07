@@ -73,6 +73,7 @@ class Rating(Base):
     review = sa.Column(sa.String, nullable=True)
 
     movie = relationship("Movie", back_populates="rating")
+    user = relationship("User", back_populates="rating")
 
     __tablename__ = "ratings"
 

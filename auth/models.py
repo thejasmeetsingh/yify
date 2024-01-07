@@ -5,7 +5,7 @@ Contain user profile related model
 import re
 
 import sqlalchemy as sa
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, relationship
 
 from database import Base
 
@@ -25,6 +25,8 @@ class User(Base):
     password = sa.Column(sa.String)
     first_name = sa.Column(sa.String)
     last_name = sa.Column(sa.String)
+
+    rating = relationship("Rating", back_populates="user")
 
     __tablename__ = "users"
 
