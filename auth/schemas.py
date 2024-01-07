@@ -26,9 +26,9 @@ class User(BaseModel):
         from_attributes = True
 
 
-class UserCreate(BaseModel):
+class UserCreateRequest(BaseModel):
     """
-    User creation schema
+    User creation request schema
     """
 
     email: str
@@ -37,9 +37,9 @@ class UserCreate(BaseModel):
     last_name: str
 
 
-class UserUpdate(BaseModel):
+class UserUpdateRequest(BaseModel):
     """
-    User update schema
+    User update request schema
     """
 
     email: str = None
@@ -47,9 +47,9 @@ class UserUpdate(BaseModel):
     last_name: str = None
 
 
-class UserLogin(BaseModel):
+class UserLoginRequest(BaseModel):
     """
-    User login schema
+    User login request schema
     """
 
     email: str
@@ -73,24 +73,24 @@ class UserMessageResponse(BaseModel):
     message: str
 
 
-class ChangePassword(BaseModel):
+class ChangePasswordRequest(BaseModel):
     """
-    Change password schema
+    Change password request schema
     """
 
     old_password: str
     new_password: str
 
 
-class ResetPassword(BaseModel):
+class ResetPasswordRequest(BaseModel):
     """
-    Reset password schema
+    Reset password request schema
     """
 
     email: str
 
 
-class JWT(BaseModel):
+class JWTResponse(BaseModel):
     """
     JWT response schema
     """
@@ -99,17 +99,17 @@ class JWT(BaseModel):
     refresh: str
 
 
-class UserJWT(UserResponse):
+class UserJWTResponse(UserResponse):
     """
     Response schema for user data with JWT
     """
 
-    tokens: JWT
+    tokens: JWTResponse
 
 
-class RefreshToken(BaseModel):
+class RefreshTokenRequest(BaseModel):
     """
-    Refresh token schema
+    Refresh token request schema
     """
 
     refresh_token: str
@@ -117,8 +117,8 @@ class RefreshToken(BaseModel):
 
 class RefreshTokenResponse(BaseModel):
     """
-    Token response schema
+    Refresh token response schema
     """
 
     message: str
-    data: JWT
+    data: JWTResponse

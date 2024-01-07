@@ -6,6 +6,7 @@ from fastapi import FastAPI, status
 from pydantic import BaseModel
 
 from auth import routes as auth_routes
+from movies import routes as movie_routes
 
 import strings
 
@@ -24,6 +25,7 @@ def get_application() -> FastAPI:
     # Add routes of different apps
     prefix = "/v1"
     application.include_router(auth_routes.router, prefix=prefix)
+    application.include_router(movie_routes.router, prefix=prefix)
 
     return application
 
