@@ -5,6 +5,7 @@ Contain movie related model
 import sqlalchemy as sa
 from sqlalchemy.orm import validates
 
+import strings
 from database import Base
 
 
@@ -44,7 +45,7 @@ class Movie(Base):
         """Validate the year entered by the user"""
 
         if not (value and isinstance(value, int) and 1000 <= value <= 9999):
-            raise ValueError("Invalid year value")
+            raise ValueError(strings.INVALID_YEAR_ERROR)
         return value
 
     def get_avg_rating(self) -> float:

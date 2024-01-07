@@ -36,8 +36,19 @@ class MovieAddRequest(BaseModel):
 
     name: str
     year: int
-    description: str | None
+    description: str = None
     extra: dict
+
+
+class MovieUpdateRequest(BaseModel):
+    """
+    Movie update request schema
+    """
+
+    name: str = None
+    year: int = None
+    description: str = None
+    extra: dict = None
 
 
 class MovieResponse(BaseModel):
@@ -47,6 +58,14 @@ class MovieResponse(BaseModel):
 
     message: str
     data: Movie
+
+
+class MovieDeleteResponse(BaseModel):
+    """
+    Movie delete response schema
+    """
+
+    message: str
 
 
 class RatingRequest(BaseModel):

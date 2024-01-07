@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from movies import models, schemas
 
 
-def get_movie_by_id_db(db: Session, movie_id: str):
+def get_movie_by_id_db(db: Session, movie_id: uuid.UUID):
     """
     Return movie object with the given ID
 
@@ -36,7 +36,7 @@ def get_movies_db(db: Session, limit: int, offset: int):
     return db.query(models.Movie).limit(limit).offset(offset).all()
 
 
-def get_movies_by_user_db(db: Session, user_id: str, limit: int, offset: int):
+def get_movies_by_user_db(db: Session, user_id: uuid.UUID, limit: int, offset: int):
     """
     Return list of movies added by a specific user
 
@@ -47,10 +47,10 @@ def get_movies_by_user_db(db: Session, user_id: str, limit: int, offset: int):
     :return: List of movie objects
     """
 
-    return db.query(models.Movie).filter_by(added_by=user_id).limit(limit).offset(offset).all()
+    return db.query(models.Movie).filter_by(added_by_id=user_id).limit(limit).offset(offset).all()
 
 
-def add_movie_db(db: Session, movie: schemas.MovieAddRequest, added_by_id: str):
+def add_movie_db(db: Session, movie: schemas.MovieAddRequest, added_by_id: uuid.UUID):
     """
     Create a movie object in the DB
 
@@ -109,7 +109,7 @@ def delete_movie_db(db: Session, movie: models.Movie):
     db.commit()
 
 
-def add_rating_db(db: Session, rating_request: schemas.RatingRequest, user_id: str):
+def add_rating_db(db: Session, rating_request: schemas.RatingRequest, user_id: uuid.UUID):
     """
     Add rating of a movie in DB
 
@@ -145,7 +145,7 @@ def add_rating_db(db: Session, rating_request: schemas.RatingRequest, user_id: s
     return db_rating
 
 
-def get_movie_ratings_db(db: Session, movie_id: str, limit: int, offset: int):
+def get_movie_ratings_db(db: Session, movie_id: uuid.UUID, limit: int, offset: int):
     """
     Get ratings by a specific movie
 
@@ -158,7 +158,7 @@ def get_movie_ratings_db(db: Session, movie_id: str, limit: int, offset: int):
     return db.query(models.Rating).filter_by(movie_id=movie_id).limit(limit).offset(offset).all()
 
 
-def get_user_ratings_db(db: Session, user_id: str, limit: int, offset: int):
+def get_user_ratings_db(db: Session, user_id: uuid.UUID, limit: int, offset: int):
     """
     Get ratings posted by a user
 
