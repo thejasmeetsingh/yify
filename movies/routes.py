@@ -186,7 +186,7 @@ async def update_movie_detail(
 
 @router.delete(
     path="/movie/{movie_id}/",
-    response_model=schemas.MovieDeleteResponse,
+    response_model=schemas.GenericMessageResponse,
     status_code=status.HTTP_200_OK
 )
 async def delete_movie(
@@ -200,7 +200,7 @@ async def delete_movie(
     :param movie_id: Path parameter
     :param user: Current User object
     :param db: DB session object
-    :return: Instance of movie delete response schema
+    :return: Instance of generic message response schema
     """
 
     try:
@@ -212,7 +212,7 @@ async def delete_movie(
                                 status_code=status.HTTP_403_FORBIDDEN)
 
         crud.delete_movie_db(db, db_movie)
-        return schemas.MovieDeleteResponse(message=strings.MOVIE_DELETE_SUCCESS)
+        return schemas.GenericMessageResponse(message=strings.MOVIE_DELETE_SUCCESS)
 
     except exc.SQLAlchemyError as e:
         # Sent error response if any SQL exception caught
@@ -253,3 +253,44 @@ async def get_user_movie_list(
     ) for db_movie in db_movies]
 
     return schemas.MovieListResponse(results=movies)
+
+
+@router.post(
+    path="/rating/",
+    response_model=schemas.RatingResponse,
+    status_code=status.HTTP_201_CREATED
+)
+async def add_rating(
+    rating_request: schemas.RatingRequest,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
+):
+    """
+    API adding rating & review of a movie
+
+    :param rating_request: Rating request
+    :param user: Current User object
+    :param db: DB session object
+    :return: Instance of rating response schema
+    """
+
+    try:
+        if not (
+            0 <= rating_request.rating <= 10
+        ):
+            raise HTTPException(
+                detail=strings.RATING_VALUE_ERROR,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+
+        db_rating = crud.add_rating_db(db, rating_request, user.id)
+        rating = schemas.Rating(rating=db_rating.rating, review=db_rating.review)
+
+        return schemas.RatingResponse(message=strings.ADD_RATING_SUCCESS, data=rating)
+
+    except exc.SQLAlchemyError as e:
+        # Sent error response if any SQL exception caught
+        raise HTTPException(
+            detail=strings.ADD_RATING_ERROR,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        ) from e

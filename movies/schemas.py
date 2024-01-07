@@ -60,9 +60,9 @@ class MovieResponse(BaseModel):
     data: Movie
 
 
-class MovieDeleteResponse(BaseModel):
+class GenericMessageResponse(BaseModel):
     """
-    Movie delete response schema
+    Generic message response schema
     """
 
     message: str
@@ -75,7 +75,25 @@ class RatingRequest(BaseModel):
 
     movie_id: UUID4
     rating: float
+    review: str = None
+
+
+class Rating(BaseModel):
+    """
+    Rating response base schema
+    """
+
+    rating: float
     review: str | None
+
+
+class RatingResponse(BaseModel):
+    """
+    Rating response schema
+    """
+
+    message: str
+    data: Rating
 
 
 class MovieList(BaseModel):
