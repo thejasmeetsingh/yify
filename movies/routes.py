@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 import strings
 from auth.models import User
+from auth.schemas import UserPublic
 from base.dependencies import get_current_user, get_db
 from movies import crud
 from movies import schemas
@@ -365,7 +366,7 @@ async def get_movie_ratings(
         id=db_rating.id,
         rating=db_rating.rating,
         review=db_rating.review,
-        user=schemas.UserRating(
+        user=UserPublic(
             id=db_rating.user.id,
             first_name=db_rating.user.first_name,
             last_name=db_rating.user.last_name

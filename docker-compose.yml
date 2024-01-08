@@ -19,7 +19,7 @@ services:
   api-server:
     build: .
     container_name: api_server
-    command: sh -c "gunicorn main:app"
+    command: sh -c "alembic upgrade head && gunicorn main:app"
     volumes:
       - .:/code
     ports:
