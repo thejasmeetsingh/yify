@@ -72,18 +72,20 @@ async def get_movie_list(
     limit: int,
     offset: int,
     _: Annotated[User, Depends(get_current_user)],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[Session, Depends(get_db)],
+    search: str = ""
 ):
     """
     API for getting list of movies
 
     :param limit: query param
     :param offset: query param
+    :param search: Search query params
     :param db: DB session object
     :return: Instance of movie list response pydantic model
     """
 
-    db_movies = crud.get_movies_db(db, limit, offset)
+    db_movies = crud.get_movies_db(db, search, limit, offset)
 
     movies = [schemas.MovieList(
         id=db_movie.id,

@@ -6,7 +6,7 @@ to interact with the data in the database.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import update, delete
+from sqlalchemy import update, delete, or_
 from sqlalchemy.orm import Session
 
 from movies import models, schemas
@@ -23,17 +23,23 @@ def get_movie_by_id_db(db: Session, movie_id: uuid.UUID):
     return db.query(models.Movie).get(movie_id)
 
 
-def get_movies_db(db: Session, limit: int, offset: int):
+def get_movies_db(db: Session, search: str, limit: int, offset: int):
     """
     Return list of movies
 
     :param db: DB Session object
+    :param search: Contains string to be searched in movie name
     :param limit: Limit the resulting rows
     :param offset: Offset for the rows
     :return List of movie objects
     """
 
-    return db.query(models.Movie).limit(limit).offset(offset).all()
+    return db.query(models.Movie).filter(or_(
+        models.Movie.name.like(f"%{search}%"),
+        models.Movie.description.like(f"%{search}%"),
+    )).order_by(
+
+    ).limit(limit).offset(offset).all()
 
 
 def get_movies_by_user_db(db: Session, user_id: uuid.UUID, limit: int, offset: int):
