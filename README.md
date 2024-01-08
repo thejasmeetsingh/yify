@@ -10,8 +10,8 @@ This project was created with the purpose of learning about a Python framework c
 
 ## TODO:
 - [x] User management
-- [ ] Movies management
-- [ ] Rating management
+- [x] Movies management
+- [x] Rating management
 - [ ] Request management
 - [x] JWT Auth system
 

@@ -27,6 +27,7 @@ class User(Base):
     last_name = sa.Column(sa.String)
 
     rating = relationship("Rating", back_populates="user")
+    request = relationship("Request", back_populates="user")
 
     __tablename__ = "users"
 

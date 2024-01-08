@@ -122,3 +122,13 @@ class RefreshTokenResponse(BaseModel):
 
     message: str
     data: JWTResponse
+
+
+class UserPublic(BaseModel):
+    """
+    User public schema, which is to be used by other apps
+    """
+
+    id: UUID4
+    first_name: str
+    last_name: str
