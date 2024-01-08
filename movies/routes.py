@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 import strings
 from auth.models import User
+from auth.schemas import UserPublic
 from base.dependencies import get_current_user, get_db
 from movies import crud
 from movies import schemas
@@ -71,19 +72,20 @@ async def add_movie(
 async def get_movie_list(
     limit: int,
     offset: int,
-    _: Annotated[User, Depends(get_current_user)],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[Session, Depends(get_db)],
+    search: str = ""
 ):
     """
-    API for getting list of movies
+    Public API for getting list of movies
 
     :param limit: query param
     :param offset: query param
+    :param search: Search query params
     :param db: DB session object
     :return: Instance of movie list response pydantic model
     """
 
-    db_movies = crud.get_movies_db(db, limit, offset)
+    db_movies = crud.get_movies_db(db, search, limit, offset)
 
     movies = [schemas.MovieList(
         id=db_movie.id,
@@ -102,11 +104,10 @@ async def get_movie_list(
 )
 async def get_movie_by_id(
     movie_id: uuid.UUID,
-    _: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
     """
-    API for getting detail of a movie by its ID
+    Public API for getting detail of a movie by its ID
 
     :param movie_id: Path parameter
     :param db: DB session object
@@ -234,7 +235,7 @@ async def get_user_movie_list(
     db: Annotated[Session, Depends(get_db)]
 ):
     """
-    API for getting list of movies added by a user
+    API for getting list of movies added by current user
 
     :param limit: query param
     :param offset: query param
@@ -347,11 +348,10 @@ async def get_movie_ratings(
     limit: int,
     offset: int,
     movie_id: uuid.UUID,
-    _: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
     """
-    API for getting ratings given by current users to a movie
+    Public API for getting ratings given by users to a movie
 
     :param limit: query param
     :param offset: query param
@@ -366,7 +366,7 @@ async def get_movie_ratings(
         id=db_rating.id,
         rating=db_rating.rating,
         review=db_rating.review,
-        user=schemas.UserRating(
+        user=UserPublic(
             id=db_rating.user.id,
             first_name=db_rating.user.first_name,
             last_name=db_rating.user.last_name

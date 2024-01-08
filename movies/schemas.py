@@ -7,6 +7,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, UUID4
 
+from auth.schemas import UserPublic
+
 
 class Movie(BaseModel):
     """
@@ -143,16 +145,6 @@ class RatingListMovieResponse(BaseModel):
     results: list[RatingMovieList]
 
 
-class UserRating(BaseModel):
-    """
-    User rating schema
-    """
-
-    id: UUID4
-    first_name: str
-    last_name: str
-
-
 class RatingUserList(BaseModel):
     """
     Schema for rating list given by users to a movies
@@ -161,7 +153,7 @@ class RatingUserList(BaseModel):
     id: UUID4
     rating: float
     review: str | None
-    user: UserRating
+    user: UserPublic
 
 
 class RatingUserListResponse(BaseModel):
